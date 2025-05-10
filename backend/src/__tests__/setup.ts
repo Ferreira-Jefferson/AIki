@@ -3,23 +3,55 @@ import mongoose from 'mongoose';
 
 let mongod: MongoMemoryServer;
 
-// Configuração global antes de todos os testes
-beforeAll(async () => {
-  mongod = await MongoMemoryServer.create();
-  const uri = mongod.getUri();
-  await mongoose.connect(uri);
-});
+// Configuração global do mongoose
+mongoose.set('strictQuery', false);
 
-// Limpeza após cada teste
-afterEach(async () => {
+// Função para limpar as coleções
+const clearCollections = async () => {
   const collections = mongoose.connection.collections;
   for (const key in collections) {
-    await collections[key].deleteMany({});
+    const collection = collections[key];
+    await collection.deleteMany({});
   }
+};
+
+// Função para conectar ao banco de dados
+const connectDB = async () => {
+  try {
+    mongod = await MongoMemoryServer.create();
+    const uri = mongod.getUri();
+    await mongoose.connect(uri);
+    console.log('✅ Conectado ao banco de testes');
+  } catch (error) {
+    console.error('❌ Erro ao conectar ao banco de testes:', error);
+    throw error;
+  }
+};
+
+// Função para desconectar do banco de dados
+const disconnectDB = async () => {
+  try {
+    await mongoose.disconnect();
+    await mongod.stop();
+    console.log('🛑 Conexão do banco de testes fechada');
+  } catch (error) {
+    console.error('❌ Erro ao fechar conexão do MongoDB:', error);
+    throw error;
+  }
+};
+
+beforeAll(async () => {
+  await connectDB();
 });
 
-// Limpeza após todos os testes
+beforeEach(async () => {
+  await clearCollections();
+});
+
+afterEach(async () => {
+  await clearCollections();
+});
+
 afterAll(async () => {
-  await mongoose.connection.close();
-  await mongod.stop();
-}); 
+  await disconnectDB();
+});
