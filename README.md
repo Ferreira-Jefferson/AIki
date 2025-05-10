@@ -16,6 +16,20 @@ Este projeto é construído com as seguintes tecnologias:
 
 AIki busca aprimorar a retenção de informações usando inteligência artificial para criar um sistema de revisão inteligente com cards interativos.
 
+Claro, Jefferson! Aqui está a sua ideia inicial organizada no mesmo formato para melhor visualização:  
+
+### 🔍 **Funcionalidades principais do AIki**  
+
+1. **Geração de decks baseada em respostas do usuário** – O usuário responde perguntas-chave para que o sistema crie automaticamente um deck personalizado.  
+2. **Seleção por palavras mais faladas** – Escolha entre uma lista das 100 ou 1000 palavras mais usadas no idioma desejado.  
+3. **Foco em temas específicos** – Opção de aprendizado direcionado para áreas como medicina, tecnologia, negócios, entre outros.  
+4. **Aprendizado baseado em arte** – Possibilidade de criar decks a partir de músicas, filmes e livros.  
+5. **Músicas como fonte de aprendizado** – O usuário pode selecionar um artista ou gênero, a IA lista opções populares e cria um deck com base nas letras das músicas.  
+6. **Filmes e livros como fonte de aprendizado** – A IA identifica os textos mais relevantes e extrai palavras-chave para compor o deck.  
+7. **Personalização manual** – O usuário pode adicionar músicas, filmes e livros de sua escolha para gerar decks específicos.  
+8. **Filtragem de palavras repetidas** – O sistema processa as palavras extraídas, remove repetições e organiza o deck de forma otimizada.  
+9. **Modo de aprendizado por palavras ou frases** – Opção de aprender apenas palavras inicialmente, mas com frases sendo introduzidas ao longo do aprendizado para melhor fixação.  
+
 ## 📌 Como instalar
 
 1. Clone o repositório:
