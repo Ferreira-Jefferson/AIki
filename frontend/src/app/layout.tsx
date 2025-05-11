@@ -1,21 +1,16 @@
-import type { Metadata } from "next";
+// src/app/layout.tsx
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "AIki - Sistema de Memorização Inteligente",
-  description: "Sistema de memorização baseado em IA inspirado no Anki",
+export const metadata = {
+  title: "AIki",
+  description: "Sistema de memorização baseado em IA",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className="min-h-screen bg-gradient-to-b from-blue-500 to-purple-600">
-        {children}
-      </body>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
+     	<body>{children}</body>
     </html>
   );
 }

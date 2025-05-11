@@ -44,9 +44,17 @@ Facilitar a retenção de informações com **inteligência artificial**, criand
 ## 📌 Instalação  
 
 ```bash
+sudo apt install -y mongodb-org
+sudo systemctl start mongod
+sudo systemctl enable mongod
+sudo systemctl status mongod
+```
+
+```bash
 git clone https://github.com/Ferreira-Jefferson/AIki
 cd AIki
 npm install
+
 npm run dev
 ```
 
