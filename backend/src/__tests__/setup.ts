@@ -40,10 +40,12 @@ const disconnectDB = async () => {
   }
 };
 
+// Conectar antes de todos os testes
 beforeAll(async () => {
   await connectDB();
 });
 
+// Limpar coleções antes e depois de cada teste
 beforeEach(async () => {
   await clearCollections();
 });
@@ -52,6 +54,8 @@ afterEach(async () => {
   await clearCollections();
 });
 
+// Desconectar após todos os testes
 afterAll(async () => {
+  // Aguardar todos os testes antes de desconectar
   await disconnectDB();
 });

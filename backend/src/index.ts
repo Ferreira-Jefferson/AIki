@@ -3,6 +3,9 @@ import cors from 'cors';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import deckRoutes from './routes/deckRoutes';
+import cardRoutes from './routes/cardRoutes';
+import reviewRoutes from './routes/reviewRoutes';
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -21,6 +24,8 @@ app.get('/', (req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/decks', deckRoutes);
+app.use('/api/decks', cardRoutes);
+app.use('/api/decks', reviewRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

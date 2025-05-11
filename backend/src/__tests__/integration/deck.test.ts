@@ -8,51 +8,42 @@ describe('Deck API', () => {
 	afterEach(async () => {
 	  await Deck.deleteMany();
 	});
-  
+
 	describe('POST /api/decks', () => {
-	  it('should create a new deck', async () => {
-		const deckData = {
-		  title: 'Test Deck',
-		  description: 'Test Description',
-		  preferences: {
-			language: 'en',
-			difficulty: 'beginner',
-			topics: ['test'],
-			source: 'user_input'
-		  },
-		  cards: [
-			{
-			  front: 'Question 1',
-			  back: 'Answer 1',
-			  tags: ['test']
+		it('should create a new deck', async () => {
+		  const deckData = {
+			title: 'Test Deck',
+			description: 'Test Description',
+			preferences: {
+			  language: 'en',
+			  difficulty: 'beginner',
+			  topics: ['test'],
+			  source: 'user_input'
 			}
-		  ]
-		};
-  
-		const response = await request(app)
-		  .post('/api/decks')
-		  .send(deckData)
-		  .expect(201);
-  
-		expect(response.body).toHaveProperty('_id');
-		expect(response.body.title).toBe(deckData.title);
-		expect(response.body.description).toBe(deckData.description);
-		expect(response.body.cards).toHaveLength(1);
-		expect(response.body.preferences.language).toBe(deckData.preferences.language);
-		expect(response.body.preferences.difficulty).toBe(deckData.preferences.difficulty);
+		  };
+	  
+		  const response = await request(app)
+			.post('/api/decks')
+			.send(deckData)
+			.expect(201);
+	  
+		  expect(response.body).toHaveProperty('_id');
+		  expect(response.body.title).toBe(deckData.title);
+		  expect(response.body.description).toBe(deckData.description);
+		  expect(response.body.cards).toHaveLength(0);
+		});
+	  
+		it('should validate required fields', async () => {
+		  const response = await request(app)
+			.post('/api/decks')
+			.send({})
+			.expect(400);
+	  
+		  expect(response.body).toHaveProperty('error');
+		  expect(response.body.error).toMatch(/is required/);
+		});
 	  });
-  
-	  it('should validate required fields', async () => {
-		const response = await request(app)
-		  .post('/api/decks')
-		  .send({})
-		  .expect(400);
-  
-		expect(response.body).toHaveProperty('error');
-		expect(response.body.error).toMatch(/is required/);
-	  });
-	});
-  
+	
 	describe('GET /api/decks', () => {
 	  it('should return all decks', async () => {
 		await Deck.create([

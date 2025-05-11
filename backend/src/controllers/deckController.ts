@@ -4,19 +4,27 @@ import mongoose from 'mongoose';
 
 export const createDeck = async (req: Request, res: Response): Promise<void> => {
 	try {
-	  const deck = new Deck(req.body);
+	  const { title, description, preferences } = req.body;
+  
+	  const deck = new Deck({
+		title,
+		description,
+		preferences,
+		cards: []
+	  });
+  
 	  await deck.save();
 	  res.status(201).json(deck);
 	} catch (error: any) {
 	  res.status(400).json({ error: error.message });
 	}
   };
+  
 
 export const getAllDecks = async (req: Request, res: Response): Promise<void> => {
   try {
     const decks = await Deck.find();
     res.json(decks);
-	console.log("descks", decks);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
