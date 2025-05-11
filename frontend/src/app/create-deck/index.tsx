@@ -36,6 +36,7 @@ export default function CreateDeckPage() {
           placeholder="Seja claro e objetivo. Ex: Aprender inglês com músicas do Linkin Park (Faint e Numb)."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+		  required
         />
         <button className={styles.button} type="submit">
           Criar
