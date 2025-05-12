@@ -8,7 +8,6 @@ import { createDeckWithCards } from '../services/deckService';
 	const deckData = req.body;
   
 	try {
-	console.log("Entrou em deck")
 	  const deck = await createDeckWithCards(deckData);
 	  res.status(201).json(deck);
 	} catch (error: any) {

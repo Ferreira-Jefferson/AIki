@@ -18,64 +18,89 @@ async function anwer(prompt: string) {
   
 	const result = await model.generateContent(prompt);
 	const response = await result.response;
-	return response.text();;
+	return response.text();
   }
 
 
 export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
-	const prompt = `**Gerar cards de estudo para o AIki**
+	const prompt: string = `**Objetivo** Gerar flashcards para um deck (sem criar se não houver correlação).
 
-1. Contexto fornecido: 
-[Nome do Deck]: ${deck.title}
-[Descrição do usuário sobre o conteúdo desejado]: ${deck.description}
+**Regra obrigatória**
+- SEM explicações, SEM Markdown, SEM campos adicionais.  
+- O retorno SEMPRE deve ser um json válido e somente um json válido. 
 
-2. Regras essenciais:
-- Gerar entre 50-500 palavras (default 50 se não especificado)
-- Extrair palavras/frases:
-  • De músicas/artistas: usar apenas palavras presentes nas letras
-  • De livros/filmes: usar palavras do conteúdo original
-  • Contextos específicos: palavras relacionadas ao tema (ex: hospital)
-- Excluir nomes próprios
-- Formato obrigatório:
-  {
-    front: "palavra (pronúncia em PT-BR)",
-    back: "tradução(s)",
-    difficulty: "easy",
-    tags: ["Idioma", "categoria"]
-  }
+**Input**  
+- Deck.title: ${deck.title}
+- Deck.description: ${deck.description}
 
-3. Passo a passo:
-① Identificar informações básicas
-	- idioma principal: (se não detectado → {error: "Um idioma deve ser informado"})
-	- quantidade de palavras: (se maior que 500 palavras → {error: "A quantidade excede o escopo de geração [500]."})
-② Analisar contexto (área temática/mídia solicitada)
-③ Filtrar palavras-chave relevantes:
-   - Para músicas: analisar letras do artista/gênero
-   - Para livros: extrair do texto original
-   - Para temas: listar termos técnicos/essenciais
-④ Adicionar pronúncia fonética intuitiva (ex: through = "thruu")
-⑤ Classificar tags por categoria gramatical/área
+**Fluxo**  
+1. **Validação**  
+   - Detectar idioma via ISO 639-1 → se falhar, abortar com  
+     { "error": "[LANG_NOT_FOUND] Idioma não reconhecido", "codes": ["LANG_NOT_FOUND"] }  
+   - Contar palavras da descrição → se > 500, abortar com  
+     { "error": "[MAX_LIMIT_EXCEEDED] Descrição muito longa", "codes": ["MAX_LIMIT_EXCEEDED"] }  
+   - Verificar contexto válido (Se não for relacionado a aprender algo e que dê para dividir em cards é inválido) → se inválido, abortar com  
+     { "error": "[INVALID_CONTEXT] Contexto não suportado", "codes": ["INVALID_CONTEXT"] }
+   - Verificar especificidade (Se estiver muito abrangente e difícil de categorizar é inválido) → se inválido, abortar com  
+     { "error": "[BROAD_CONTEXT] Contexto muito amplo. Seja mais específico.", "codes": ["BROAD_CONTEXT"] }
 
-4. Exemplo de saída para "Inglês médico - termos hospitalares":
+2. **Geração dos cards**  
+   - Extrair termos-chaves reais (sem inventar nomes, nem usar nomes próprios).  
+   - Para mídia específica: usar apenas palavras do texto/álbum/filme mencionado.  
+   - Incluir pronúncia fonética simples entre parênteses. 
+   		- Português por padrão, ou na lingua solicitada pelo usuário. 
+		- A pronuncia fonética deve ser clara e compreeensível
+		- Não deve ter caracteres incomuns
+		- Não deve inventar caracteres
+		- Exemplo:
+			- the: dhâ
+			- of: âv
+			- to: tuu
+			- and: énd
+   - Definir dificuldade (easy|medium|hard) conforme uso e complexidade.  
+   - Tags (máx. 3): idioma + categoria gramatical ou área temática.
+
+3. **Formato de saída**  
+   - Se OK, retornar **apenas** um array JSON de objetos:
+     [
+       {
+         "front": "palavra (pronúncia)",
+         "back": "tradução",
+         "difficulty": "easy|medium|hard",
+         "tags": ["Idioma", "Categoria", ...]
+       }
+     ]
+     
+   - Caso de erro, retornar **apenas**:
+     {
+       "error": "mensagem clara",
+       "codes": ["CÓDIGO_ERRO", …]
+     }
+4. **Exemplo de saída com todo ok**
 [
-  {
-    front: "stethoscope (sté-tos-koup)",
-    back: "estetoscópio"
-    difficulty: "easy",
-    tags: ["Inglês", "Medicina"]
-  },
-  {
-    front: "intravenous (in-trá-vi-nas)",
-    back: "intravenoso",
-    difficulty: "medium",
-    tags: ["Inglês", "Medicina"]
-  }
-]`
+	{
+		"front": "other (âdhâr)",
+		"back": "âdhâr",
+		"difficulty": "medium",
+		"tags": ["Inglês", "Adjetivo", "Pronome"]
+	}
+]
+
+**Regras extra**  
+- Se a dercrição não tiver correlação direta com a criação de de cards, aborte.
+- 50–500 palavras geradas (default: 50, se não especificado).
+- NUNCA inventar ou expandir conteúdo além do formato.  
+- SEM explicações, SEM Markdown, SEM campos adicionais.  
+`;
 
 	const response = await anwer(prompt);
+	console.log(response)
 
 	const json = JSON.parse(response.replace('```json', "").replace('```', ""))
 
+	if(json.error){
+		throw new Error(json.error);
+	}
 	const cards: ICard[] = json.map((card: any) => {
 		const cardData = {
 			front: card.front,
