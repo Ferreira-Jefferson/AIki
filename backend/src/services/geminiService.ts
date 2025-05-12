@@ -94,7 +94,6 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
 `;
 
 	const response = await anwer(prompt);
-	console.log(response)
 
 	const json = JSON.parse(response.replace('```json', "").replace('```', ""))
 
@@ -108,8 +107,7 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
 			viewedCount: 0,
 			nextReviewDate: new Date().toISOString(),
 			difficulty: card.difficulty,
-			tags: card.tags,
-			deck: (deck as any)._id.toString(),
+			tags: card.tags
 		  };
 		  return cardData;
 	})
