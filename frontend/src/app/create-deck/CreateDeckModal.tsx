@@ -1,10 +1,16 @@
-
 'use client';
 
 import { useState } from 'react';
+import Loader from '@/components/Loader/Loader';
+import SubmitButton from '@/components/SubmitButton/SubmitButton';
 import styles from './CreateDeckModal.module.css';
 
-export default function CreateDeckModal({ onClose }: { onClose: () => void }) {
+interface CreateDeckModalProps {
+	onClose: () => void;
+	onDeckCreated: () => Promise<void>;
+  }
+
+export default function CreateDeckModal({ onClose, onDeckCreated }: CreateDeckModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -14,13 +20,12 @@ export default function CreateDeckModal({ onClose }: { onClose: () => void }) {
     setIsLoading(true);
 
     try {
-      const api = 'http://localhost:3001/api';
-      await fetch(`${api}/decks`, {
+      await fetch('http://localhost:3001/api/decks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description }),
       });
-      onClose();
+      await onDeckCreated();
     } catch (error) {
       console.error('Erro ao criar deck:', error);
     } finally {
@@ -30,15 +35,8 @@ export default function CreateDeckModal({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      {/* Overlay do loader - bloqueia toda a interface */}
-      {isLoading && (
-        <div className={styles.loaderOverlay}>
-          <div className={styles.dualRing}></div>
-          <p className={styles.loaderText}>Criando seu deck...</p>
-        </div>
-      )}
+      {isLoading && <Loader message="Criando seu deck..." />}
 
-      {/* Modal principal (desabilitado durante loading) */}
       <div 
         className={styles.modalOverlay} 
         onClick={onClose}
@@ -67,9 +65,7 @@ export default function CreateDeckModal({ onClose }: { onClose: () => void }) {
               required
               disabled={isLoading}
             />
-            <button className={styles.button} type="submit" disabled={isLoading}>
-              {isLoading ? 'Criando...' : 'Criar'}
-            </button>
+            <SubmitButton isLoading={isLoading} />
           </form>
         </div>
       </div>

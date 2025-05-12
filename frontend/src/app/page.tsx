@@ -1,143 +1,110 @@
-
 'use client';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import { Deck } from '@/services/deckService';
+import { fetchDecks } from '@/services/deckService';
+import CreateDeckModal from './create-deck/CreateDeckModal';
+import DeckCard from '@/components/DeckCard/DeckCard';
 import styles from './page.module.css';
-import CreateDeckModal from './create-deck/CreateDeckModal'; 
-import { useState } from 'react';
-
-interface Deck {
-  id: string;
-  title: string;
-  description: string;
-  creationDate: Date;
-  totalCards: number;
-  easy: number;
-  medium: number;
-  hard: number;
-}
 
 export default function Home() {
-  
-  const decks: Deck[] = [
-    {
-      id: '1',
-      title: 'Inglês Médico',
-      description: 'Termos médicos em inglês',
-      creationDate: new Date(2024, 2, 15),
-      totalCards: 3,
-      easy: 3,
-      medium: 0,
-      hard: 0
-    },
-	{
-		id: '1',
-		title: 'Inglês Médico',
-		description: 'Termos médicos em inglês',
-		creationDate: new Date(2024, 2, 15),
-		totalCards: 3,
-		easy: 1,
-		medium: 1,
-		hard: 1
-	  },
-	  {
-		id: '1',
-		title: 'Inglês Médico',
-		description: 'Termos médicos em inglês',
-		creationDate: new Date(2024, 2, 15),
-		totalCards: 3,
-		easy: 0,
-		medium: 0,
-		hard: 3
-	  }
-  
-  ];
-
+  const [decks, setDecks] = useState<Deck[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const loadDecks = async () => {
+      try {
+        const data = await fetchDecks();
+        setDecks(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-const calculateProgress = (deck: Deck) => {
-	const total = deck.easy + deck.medium + deck.hard;
-	const progress = (deck.easy + deck.medium * 0.5) / total;
-	return Math.min(Math.max(progress * 100, 0), 100); 
+    loadDecks();
+  }, []);
+
+  const handleDeckCreated = async () => {
+    try {
+      const data = await fetchDecks();
+      setDecks(data);
+      setIsModalOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar decks');
+    }
   };
-  
-  const getProgressColor = (progress: number) => {
-	const hue = progress * 1.2; 
-	return `hsl(${hue * 100}, 70%, 45%)`; 
-  };
+
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loader}></div>
+        <p>Carregando seus decks...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <p>Erro: {error}</p>
+        <button onClick={() => window.location.reload()}>Tentar novamente</button>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
       {decks.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyText}>Você ainda não possui nenhum deck criado</p>
-          <Link href="/create-deck" className={styles.createButton}>
+          <button 
+            className={styles.createButton}
+            onClick={() => setIsModalOpen(true)}
+          >
             Criar Primeiro Deck
-          </Link>
+          </button>
         </div>
       ) : (
         <>
           <div className={styles.header}>
             <h1>Meus Decks</h1>
-            <button className={styles.floatingButton} onClick={() => setIsModalOpen(true)}>
-			+ Criar Novo Deck
-			</button>
+            <button 
+              className={styles.floatingButton}
+              onClick={() => setIsModalOpen(true)}
+            >
+              + Criar Novo Deck
+            </button>
           </div>
-		  {isModalOpen && (
-			<div className={styles.modalOverlay}>
-				<CreateDeckModal onClose={() => setIsModalOpen(false)} />
-			</div>
-			)}
 
           <div className={styles.grid}>
             {decks.map((deck) => (
-              <div key={deck.id} className={styles.deckCard}>
-                <div className={styles.cardHeader}>
-                  <h2>{deck.title}</h2>
-				  <div className={styles.progressBar}>
-					<div
-						className={`${styles.progressFill} ${
-						styles[
-							calculateProgress(deck) >= 80
-							? 'progress80'
-							: calculateProgress(deck) >= 60
-							? 'progress60'
-							: calculateProgress(deck) >= 40
-							? 'progress40'
-							: calculateProgress(deck) >= 20
-							? 'progress20'
-							: 'progress0'
-						]
-						}`}
-						style={{
-						width: `${calculateProgress(deck)}%`,
-						}}
-					></div>
-					</div>
-				</div>
-
-                <p className={styles.description}>{deck.description}</p>
-
-                <div className={styles.stats}>
-				<div className={styles.statItem}>
-					<span>🗓️ Criação</span>
-					<span>{format(deck.creationDate, 'dd/MM/yyyy')}</span>
-					</div>
-					<div className={styles.statItem}>
-					<span>🧠 Cards</span>
-					<span>{deck.totalCards}</span>
-					</div>
-					<div className={styles.difficultyStats}>
-						<div className={`${styles.difficultyItem} ${styles.hard}`}> 🔴 {deck.hard}</div>
-						<div className={`${styles.difficultyItem} ${styles.medium}`}> 🟠 {deck.medium}</div>
-						<div className={`${styles.difficultyItem} ${styles.easy}`}> 🟢 {deck.easy}</div>
-					</div>
-                </div>
-              </div>
+              <DeckCard 
+                key={deck._id}
+                deck={{
+                  id: deck._id,
+                  title: deck.title,
+                  description: deck.description,
+                  creationDate: new Date(deck.createdAt),
+                  totalCards: deck.cards.total,
+                  easy: deck.cards.easy,
+                  medium: deck.cards.medium,
+                  hard: deck.cards.hard
+                }}
+              />
             ))}
           </div>
         </>
+      )}
+
+      {isModalOpen && (
+        <CreateDeckModal 
+          onClose={() => setIsModalOpen(false)}
+          onDeckCreated={handleDeckCreated}
+        />
       )}
     </div>
   );

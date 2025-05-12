@@ -1,0 +1,46 @@
+/* components/Loader.module.css */
+.loaderOverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(255, 255, 255, 0.9);
+	backdrop-filter: blur(4px);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	z-index: 2000;
+	cursor: wait;
+  }
+  
+  .dualRing {
+	display: inline-block;
+	width: 80px;
+	height: 80px;
+  }
+  
+  .dualRing:after {
+	content: " ";
+	display: block;
+	width: 64px;
+	height: 64px;
+	margin: 8px;
+	border-radius: 50%;
+	border: 6px solid #7159C1;
+	border-color: #7159C1 transparent #7159C1 transparent;
+	animation: dualRing 1.2s linear infinite;
+  }
+  
+  @keyframes dualRing {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+  }
+  
+  .loaderText {
+	margin-top: 20px;
+	font-size: 1.2rem;
+	color: #2E2E36;
+	font-weight: 500;
+  }
