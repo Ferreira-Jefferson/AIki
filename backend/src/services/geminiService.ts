@@ -39,10 +39,10 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
      { "error": "[LANG_NOT_FOUND] Idioma não reconhecido", "codes": ["LANG_NOT_FOUND"] }  
    - Contar palavras da descrição → se > 500, abortar com  
      { "error": "[MAX_LIMIT_EXCEEDED] Descrição muito longa", "codes": ["MAX_LIMIT_EXCEEDED"] }  
+   - Verificar especificidade (Se estiver muito abrangente e difícil de categorizar é inválido) → se inválido, abortar com  
+	{ "error": "[BROAD_CONTEXT] Contexto muito amplo. Seja mais específico.", "codes": ["BROAD_CONTEXT"] }
    - Verificar contexto válido (Se não for relacionado a aprender algo e que dê para dividir em cards é inválido) → se inválido, abortar com  
      { "error": "[INVALID_CONTEXT] Contexto não suportado", "codes": ["INVALID_CONTEXT"] }
-   - Verificar especificidade (Se estiver muito abrangente e difícil de categorizar é inválido) → se inválido, abortar com  
-     { "error": "[BROAD_CONTEXT] Contexto muito amplo. Seja mais específico.", "codes": ["BROAD_CONTEXT"] }
 
 2. **Geração dos cards**  
    - Extrair termos-chaves reais (sem inventar nomes, nem usar nomes próprios).  
@@ -56,8 +56,7 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
 			- the: dhâ
 			- of: âv
 			- to: tuu
-			- and: énd
-   - Definir dificuldade (easy|medium|hard) conforme uso e complexidade.  
+			- and: énd 
    - Tags (máx. 3): idioma + categoria gramatical ou área temática.
 
 3. **Formato de saída**  
@@ -66,7 +65,6 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
        {
          "front": "palavra (pronúncia)",
          "back": "tradução",
-         "difficulty": "easy|medium|hard",
          "tags": ["Idioma", "Categoria", ...]
        }
      ]
@@ -81,7 +79,6 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
 	{
 		"front": "other (âdhâr)",
 		"back": "âdhâr",
-		"difficulty": "medium",
 		"tags": ["Inglês", "Adjetivo", "Pronome"]
 	}
 ]
@@ -94,23 +91,11 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
 `;
 
 	const response = await anwer(prompt);
+	const cards = JSON.parse(response.replace('```json', "").replace('```', ""))
 
-	const json = JSON.parse(response.replace('```json', "").replace('```', ""))
-
-	if(json.error){
-		throw new Error(json.error);
+	if(cards.error){
+		throw new Error(cards.error);
 	}
-	const cards: ICard[] = json.map((card: any) => {
-		const cardData = {
-			front: card.front,
-			back: card.back,
-			viewedCount: 0,
-			nextReviewDate: new Date().toISOString(),
-			difficulty: card.difficulty,
-			tags: card.tags
-		  };
-		  return cardData;
-	})
 	return cards;
 };
 

@@ -8,7 +8,7 @@ export interface ICard extends Document {
   mediumCount: number,
   hardCount: number,
   nextReviewDate: Date;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: 'none' | 'easy' | 'medium' | 'hard';
   tags: string[];
   deck: mongoose.Types.ObjectId;
 }
@@ -24,8 +24,8 @@ const CardSchema: Schema = new Schema(
 	hardCount: { type: Number, default: 0 },
     difficulty: {
       type: String,
-      enum: ['easy', 'medium', 'hard'],
-      default: 'medium'
+      enum: ['none', 'easy', 'medium', 'hard'],
+      default: 'none'
     },
     tags: [{ type: String }],
     deck: {

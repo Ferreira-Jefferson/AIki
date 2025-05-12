@@ -14,8 +14,7 @@ import { createDeckWithCards } from '../services/deckService';
 	  res.status(500).json({ message: 'Erro ao criar o deck e os cards', error: error.message });
 	  return ;
 	}
-  };
-	
+  };	
   
   export const getAllDecks = async (req: Request, res: Response): Promise<void> => {
 	try {
