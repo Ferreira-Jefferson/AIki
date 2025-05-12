@@ -1,32 +1,39 @@
 'use client';
+
 import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 import styles from './DeckCard.module.css';
 
 interface DeckCardProps {
-	deck: {
-	  id: string;
-	  title: string;
-	  description: string;
-	  creationDate: Date;
-	  totalCards: number;
-	  easy: number;
-	  medium: number;
-	  hard: number;
-	},
-  onClick?: () => void;
+  deck: {
+    id: string;
+    title: string;
+    description: string;
+    creationDate: Date;
+    totalCards: number;
+    easy: number;
+    medium: number;
+    hard: number;
+  };
 }
 
-export default function DeckCard({ deck, onClick }: DeckCardProps) {
+export default function DeckCard({ deck }: DeckCardProps) {
+  const router = useRouter();
+
   const calculateProgress = () => {
     const total = deck.easy + deck.medium + deck.hard;
     const progress = (deck.easy + deck.medium * 0.5) / total;
     return Math.min(Math.max(progress * 100, 0), 100);
   };
 
+  const handleClick = () => {
+    router.push(`/decks/${deck.id}`);
+  };
+
   const progress = calculateProgress();
 
   return (
-    <div className={styles.deckCard} onClick={onClick}>
+    <div className={styles.deckCard} onClick={handleClick}>
       <div className={styles.cardHeader}>
         <h2>{deck.title}</h2>
         
