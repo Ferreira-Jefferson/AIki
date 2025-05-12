@@ -7,21 +7,25 @@ import styles from './CreateDeckPage.module.css';
 export default function CreateDeckPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+
   const handleSubmit = async (e: React.FormEvent) => {
-	  e.preventDefault();
+	  	e.preventDefault();
 	  
-	  const res = await fetch('/api/decks', {
+	  	const api = 'http://localhost:3001/api';
+
+		type DeckResponse = Response & { _id?: string };
+	  	const deck = await fetch(`${api}/decks`, {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
 		  body: JSON.stringify({ title, description }),
 		});
-		
-		const data = await res.json();
+
+		const data = await deck.json();
 		console.log('Deck criado:', data);
 	};
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Criar Novo Deck</h2>
+      <h2 className={styles.title}>Criar Deck</h2>
       <form className={styles.form} onSubmit={handleSubmit}>
         <input
           className={styles.input}

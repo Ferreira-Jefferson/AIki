@@ -12,7 +12,7 @@ export interface IDeck extends Document {
   title: string;
   description: string;
   preferences: IDeckPreferences;
-  cards: mongoose.Types.ObjectId[];  // Agora é um array de IDs de Card
+  cards: mongoose.Types.ObjectId[];  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,8 +31,7 @@ const DeckSchema = new Schema<IDeck>({
   preferences: {
     language: {
       type: String,
-      required: true,
-      enum: ['en', 'es', 'fr', 'de', 'it', 'pt'],
+      required: false,
       trim: true
     },
     difficulty: {
@@ -43,16 +42,13 @@ const DeckSchema = new Schema<IDeck>({
     },
     topics: {
       type: [String],
-      required: true,
-      validate: {
-        validator: (arr: string[]) => arr.length > 0,
-        message: 'At least one topic is required'
-      }
+      required: false
     },
     source: {
       type: String,
       required: true,
-      enum: ['user_input', 'music', 'movie', 'book']
+      enum: ['user_input', 'music', 'movie', 'book'],
+	  default: 'user_input'
     }
   },
   cards: [{
