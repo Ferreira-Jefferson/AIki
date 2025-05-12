@@ -1,4 +1,3 @@
-// src/app/create-deck/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -13,15 +12,12 @@ export default function CreateDeckPage() {
 	  
 	  	const api = 'http://localhost:3001/api';
 
-		type DeckResponse = Response & { _id?: string };
 	  	const deck = await fetch(`${api}/decks`, {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
 		  body: JSON.stringify({ title, description }),
 		});
 
-		const data = await deck.json();
-		console.log('Deck criado:', data);
 	};
   return (
     <div className={styles.container}>
