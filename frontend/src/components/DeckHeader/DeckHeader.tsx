@@ -4,13 +4,15 @@ import { useRouter } from 'next/navigation';
 import styles from './DeckHeader.module.css';
 
 interface DeckHeaderProps {
-  title: string;
-  description: string;
+	id: string;
+  	title: string;
+  	description: string;
 }
 
 export default function DeckHeader({ 
-  title, 
-  description,
+	id,
+  	title, 
+  	description,
 }: DeckHeaderProps) {
   const router = useRouter();
 
@@ -19,9 +21,24 @@ export default function DeckHeader({
     // router.push('/edit') ou abrir modal, etc.
   };
 
-  const handleDelete = () => {
-    console.log('Excluir deck');
-    // Confirmação, fetch, redirecionamento...
+  const handleDelete = async () => {
+	try {
+	  console.log('Excluindo deck...', id);
+	  
+	  const res = await fetch(`http://localhost:3001/api/decks/${id}`, {
+		method: 'DELETE',
+	  });
+  
+	  if (!res.ok) {
+		throw new Error('Falha ao excluir o deck');
+	  }
+  
+	  console.log('Deck excluído com sucesso');
+	  router.push('/');
+	  
+	} catch (error) {
+	  console.error('Erro ao excluir deck:', error);
+	}
   };
 
   return (

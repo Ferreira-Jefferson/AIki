@@ -2,10 +2,11 @@ import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 import React from 'react';
 import DeckHeader from '@/components/DeckHeader/DeckHeader';
+import FlashcardViewer from '@/components/FlashcardViewer/FlashcardViewer';
 
 
 interface Deck {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   creationDate: Date;
@@ -13,6 +14,7 @@ interface Deck {
   easy: number;
   medium: number;
   hard: number;
+  cards: []
 }
 
 interface Props {
@@ -46,25 +48,13 @@ const DeckPage: React.FC<Props> = async ({ params }) => {
   const progress = calculateProgress();
   return (
 	<>
-<DeckHeader 
-  title={deck.title}
-  description={deck.description}
-/>
+		<DeckHeader 
+		id={id}
+		title={deck.title}
+		description={deck.description}
+		/>
 
-<main style={{ padding: '2rem' }}>
-      <h1>{deck.title}</h1>
-      <p><strong>Descrição:</strong> {deck.description}</p>
-      <p><strong>Criado em:</strong> {format(deck.creationDate, 'dd/MM/yyyy')}</p>
-      <p><strong>Total de cards:</strong> {deck.totalCards}</p>
-
-      <h2>Progresso: {Math.round(progress)}%</h2>
-
-      <ul>
-        <li>🟢 Fáceis: {deck.easy}</li>
-        <li>🟠 Médios: {deck.medium}</li>
-        <li>🔴 Difíceis: {deck.hard}</li>
-      </ul>
-    </main>
+		<FlashcardViewer deck={deck}/>
 	</>
 
   );
