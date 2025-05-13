@@ -1,6 +1,8 @@
-// src/app/deck/[id]/page.tsx
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
+import React from 'react';
+import DeckHeader from '@/components/DeckHeader/DeckHeader';
+
 
 interface Deck {
   id: string;
@@ -13,6 +15,12 @@ interface Deck {
   hard: number;
 }
 
+interface Props {
+	params: {
+	  id: string;
+	};
+  }
+
 const getDeckById = async (id: string): Promise<Deck | null> => {
 	const res = await fetch(`http://localhost:3001/api/decks/${id}`);
 	if (!res.ok) return null;
@@ -23,8 +31,9 @@ const getDeckById = async (id: string): Promise<Deck | null> => {
 	};
   };
 
-export default async function DeckPage({ params }: { params: { id: string } }) {
-  const deck = await getDeckById(params.id);
+const DeckPage: React.FC<Props> = async ({ params }) => {
+	const { id } = await params;
+  const deck = await getDeckById(id);
 
   if (!deck) return notFound();
 
@@ -35,9 +44,14 @@ export default async function DeckPage({ params }: { params: { id: string } }) {
   };
 
   const progress = calculateProgress();
-
   return (
-    <main style={{ padding: '2rem' }}>
+	<>
+<DeckHeader 
+  title={deck.title}
+  description={deck.description}
+/>
+
+<main style={{ padding: '2rem' }}>
       <h1>{deck.title}</h1>
       <p><strong>Descrição:</strong> {deck.description}</p>
       <p><strong>Criado em:</strong> {format(deck.creationDate, 'dd/MM/yyyy')}</p>
@@ -51,5 +65,9 @@ export default async function DeckPage({ params }: { params: { id: string } }) {
         <li>🔴 Difíceis: {deck.hard}</li>
       </ul>
     </main>
+	</>
+
   );
 }
+
+export default DeckPage;
