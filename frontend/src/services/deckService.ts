@@ -26,9 +26,9 @@ export interface Deck {
 			createdAt: deck.createdAt,
 			cards: {
 			total: deck.cards.length,
-			easy: 0,
-			medium: 0,
-			hard: 0,
+			easy: deck.cardsDifficulty.easy,
+			medium: deck.cardsDifficulty.medium,
+			hard: deck.cardsDifficulty.hard,
 			}
 		}
 	  });

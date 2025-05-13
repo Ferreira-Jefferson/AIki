@@ -96,7 +96,7 @@
   }
   
   .createButton {
-	background: #FF6347;
+	background: #f75538;
 	color: white;
 	padding: 1rem 2rem;
 	border-radius: 8px;
@@ -106,7 +106,7 @@
   }
   
   .createButton:hover {
-	background: #FF4769;
+	background:  #7159C1;
   }
   
   @media (max-width: 768px) {

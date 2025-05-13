@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import styles from './FlashcardViewer.module.css';
 
 interface Card {
-  front: string;
-  back: string;
+	_id: string
+	front: string;
+	back: string;
 }
 
 interface Deck {
@@ -12,17 +13,20 @@ interface Deck {
 	title: string;
 	description: string;
 	creationDate: Date;
-	totalCards: number;
-	easy: number;
-	medium: number;
-	hard: number;
+	cardsDifficulty: {
+		easy: number;
+		medium: number;
+		hard: number;
+	}
 	cards: []
   }
 
 export default function FlashcardViewer({ deck }: { deck: Deck }) {
   const [cards, setCards] = useState<Card[]>([]);
+  const [lastIndex, setLastIndex] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
 	const fetchCards = async () => {
@@ -35,6 +39,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 		
 		const cardsData = await response.json();
 		setCards(cardsData); 
+		calculateProgress(deck);
 		
 	  } catch (error) {
 		console.error('Erro ao buscar cartas:', error);
@@ -43,33 +48,65 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   
 	fetchCards();
   }, [deck]);
+  
 
   const currentCard = cards[currentIndex];
 
   const handleFlip = () => setFlipped(!flipped);
 
   const handlePrevious = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      setFlipped(false);
-    }
+		setFlipped(false);
+		setTimeout(() => {
+			setCurrentIndex(prev => prev - 1);			
+		}, 200);
   };
 
   const handleNext = () => {
-    if (currentIndex < cards.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setFlipped(false);
-    }
+	  setFlipped(false);
+	  setTimeout(() => {
+			setCurrentIndex(prev => prev + 1);		
+		}, 200);	  
   };
 
-  const handleAnswer = (difficulty: 'easy' | 'medium' | 'hard') => {
-    console.log(`Resposta: ${difficulty} para card ${currentIndex}`);
-    handleNext();
+  const handleAnswer = async (difficulty: 'easy' | 'medium' | 'hard') => {
+	try {
+	  if (!currentCard) return;
+  
+	  const response = await fetch(
+		`http://localhost:3001/api/decks/${deck._id}/cards/${currentCard._id}/process-response`,
+		{
+		  method: 'POST',
+		  headers: {
+			'Content-Type': 'application/json',
+		  },
+		  body: JSON.stringify({ difficulty }),
+		}
+	  );
+  
+	  if (!response.ok) {
+		throw new Error('Failed to process card response');
+	  }
+  
+	  const { card, deck: updatedDeck } = await response.json();
+	  
+	  calculateProgress(updatedDeck);
+	  setLastIndex(prev => prev + 1);
+	  handleNext();
+	  
+	} catch (error) {
+	  console.error('Error processing card response:', error);
+	}
   };
 
-  const progress = cards.length > 0 
-    ? Math.round(((currentIndex + 1) / cards.length) * 100 )
-	: 0;
+ 	const calculateProgress = (deck: Deck) => {
+		console.log("Dentro", deck)
+		const total = deck.cardsDifficulty.easy + deck.cardsDifficulty.medium + deck.cardsDifficulty.hard;
+		if (total == 0)
+			setProgress(0);
+		const progress = (deck.cardsDifficulty.easy + deck.cardsDifficulty.medium * 0.5) / deck.cards.length;
+		const result = Math.min(Math.max(progress * 100, 0), 100);
+		setProgress(result)
+	  };
 
   return (
     <div className={styles.container}>
@@ -78,13 +115,14 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
       </div>
 
       <div className={styles.flashcardArea}>
-        <button 
-          onClick={handlePrevious} 
-          className={styles.navButton} 
-          aria-label="Anterior"
-        >
-          &lt;
-        </button>
+      <button
+		onClick={handlePrevious}
+		className={`${styles.navButton} ${currentIndex <= 0 ? styles.disabled : ''}`}
+		aria-label="Anterior"
+		disabled={currentIndex <= 0}
+		>
+		&lt;
+		</button>
 
         <div 
           className={`${styles.card} ${flipped ? styles.flipped : ''}`} 
@@ -98,8 +136,9 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 
         <button 
           onClick={handleNext} 
-          className={styles.navButton} 
+          className={`${styles.navButton} ${(currentIndex >= lastIndex) ? styles.disabled : ''}`}
           aria-label="Próximo"
+		  disabled={currentIndex >= lastIndex}
         >
           &gt;
         </button>

@@ -1,4 +1,5 @@
 import { ICard, Card } from '../models/Card';
+import { IDeck, Deck } from '../models/Deck';
 import { updateDifficultyCounts } from './reviewService';
 
 // Função para criar um card
@@ -7,19 +8,40 @@ export const createCard = async (cardData: ICard): Promise<ICard> => {
   return card;
 };
 
-export const processCardResponse = async (cardId: string, difficulty: string): Promise<ICard> => {
-  const validDifficulties = ['easy', 'medium', 'hard'];
-  if (!validDifficulties.includes(difficulty)) {
-    throw new Error('Invalid difficulty level');
-  }
+export const processCardResponse = async (cardId: string, difficulty: 'easy' | 'medium' | 'hard'): Promise<{card: ICard, deck?: IDeck}> => {
 
-  const card = await Card.findById(cardId);
-  if (!card) {
-    throw new Error('Card not found');
-  }
+	const validDifficulties = ['easy', 'medium', 'hard'];
+	if (!validDifficulties.includes(difficulty)) {
+	  throw new Error('Invalid difficulty level');
+	}
   
-  const updatedCard = updateDifficultyCounts(card, difficulty);
-  await updatedCard.save();
+	const card = await Card.findById(cardId).populate('deck');
+	if (!card) {
+	  throw new Error('Card not found');
+	}
   
-  return updatedCard;
-};
+	const deck = await Deck.findById(card.deck);
+	if (!deck) {
+	  throw new Error('Deck not found');
+	}
+  
+	if (card.difficulty === 'none') {
+	  deck.cardsDifficulty[difficulty] += 1;
+	} else {
+	  deck.cardsDifficulty[card.difficulty] -= 1;
+	  deck.cardsDifficulty[difficulty] += 1;
+	}
+  
+	card.difficulty = difficulty;
+	
+	if (difficulty === 'easy') card.easyCount += 1;
+	else if (difficulty === 'medium') card.mediumCount += 1;
+	else if (difficulty === 'hard') card.hardCount += 1;
+  
+	await Promise.all([
+	  card.save(),
+	  deck.save()
+	]);
+
+	return { card, deck };
+  };

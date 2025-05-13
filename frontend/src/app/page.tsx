@@ -89,10 +89,12 @@ export default function Home() {
                   title: deck.title,
                   description: deck.description,
                   creationDate: new Date(deck.createdAt),
-                  totalCards: deck.cards.total,
-                  easy: deck.cards.easy,
-                  medium: deck.cards.medium,
-                  hard: deck.cards.hard
+				  cards: {
+					total: deck.cards.total,
+					easy: deck.cards.easy,
+					medium: deck.cards.medium,
+					hard: deck.cards.hard
+				  }
                 }}
               />
             ))}

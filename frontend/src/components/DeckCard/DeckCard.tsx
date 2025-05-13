@@ -10,20 +10,22 @@ interface DeckCardProps {
     title: string;
     description: string;
     creationDate: Date;
-    totalCards: number;
-    easy: number;
-    medium: number;
-    hard: number;
+	cards: {
+		total: number;
+		easy: number;
+		medium: number;
+		hard: number;
+	  }
   };
 }
 
 export default function DeckCard({ deck }: DeckCardProps) {
   const router = useRouter();
-
+  
   const calculateProgress = () => {
-    const total = deck.easy + deck.medium + deck.hard;
+    const total = deck.cards.easy + deck.cards.medium + deck.cards.hard;
 	if (total == 0)return total;
-    const progress = (deck.easy + deck.medium * 0.5) / total;
+    const progress = (deck.cards.easy + deck.cards.medium * 0.5) / deck.cards.total;
     return Math.min(Math.max(progress * 100, 0), 100);
   };
 
@@ -59,12 +61,12 @@ export default function DeckCard({ deck }: DeckCardProps) {
         </div>
         <div className={styles.statItem}>
           <span>🧠 Cards</span>
-          <span>{deck.totalCards}</span>
+          <span>{deck.cards.total}</span>
         </div>
         <div className={styles.difficultyStats}>
-          <span className={styles.hard}>🔴 {deck.hard}</span>
-          <span className={styles.medium}>🟠 {deck.medium}</span>
-          <span className={styles.easy}>🟢 {deck.easy}</span>
+          <span className={styles.easy}>🟢 {deck.cards.easy}</span>
+          <span className={styles.medium}>🟠 {deck.cards.medium}</span>
+          <span className={styles.hard}>🔴 {deck.cards.hard}</span>
         </div>
       </div>
     </div>

@@ -32,7 +32,6 @@
 	height: 50px;
 	border-radius: 50%;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-	cursor: pointer;
 	transition: all 0.2s ease;
 	display: flex;
 	align-items: center;
@@ -40,9 +39,19 @@
 	flex-shrink: 0;
   }
   
-  .navButton:hover {
+  .navButton:not(:disabled):hover {
 	background-color: #e0d6fd;
 	transform: scale(1.05);
+	cursor: pointer;
+  }
+  
+  .navButton:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+  }
+  
+  .navButton.disabled {
+	pointer-events: none;
   }
   
   .card {
@@ -103,31 +112,52 @@
   .easy, .medium, .hard {
 	padding: 0.7rem 1.5rem;
 	border-radius: 8px;
-	border: none;
 	font-weight: 500;
 	cursor: pointer;
 	font-size: 1rem;
-	transition: transform 0.2s ease;
+	transition: all 0.15s ease;
+	border-width: 1px;
+	border-style: solid;
+	outline: none;
   }
   
   .easy {
 	background-color: #e3fbe3;
 	color: #2e8b2e;
+	border-color: #a8d8a8;
+  }
+  
+  .easy:active {
+	background-color: #b1ddb1;
   }
   
   .medium {
 	background-color: #fffacc;
 	color: #c49e00;
+	border-color: #e6d883;
+  }
+  
+  .medium:active {
+	background-color: #e2d48a;
   }
   
   .hard {
 	background-color: #ffe0e0;
 	color: #cc0000;
+	border-color: #f5a3a3;
+  }
+
+  .hard:active {
+	background-color: #dfa5a5;
   }
   
   .easy:hover, .medium:hover, .hard:hover {
 	transform: translateY(-2px);
   }
+
+  .easy:hover, .medium:hover, .hard:hover {
+	filter: brightness(1.02);
+  }  
   
   @media (max-width: 600px) {
 	.flashcardArea {
