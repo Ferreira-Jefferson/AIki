@@ -22,6 +22,7 @@ export default function DeckCard({ deck }: DeckCardProps) {
 
   const calculateProgress = () => {
     const total = deck.easy + deck.medium + deck.hard;
+	if (total == 0)return total;
     const progress = (deck.easy + deck.medium * 0.5) / total;
     return Math.min(Math.max(progress * 100, 0), 100);
   };

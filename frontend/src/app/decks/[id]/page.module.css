@@ -1,0 +1,178 @@
+.container {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 2rem;
+	position: relative;
+  }
+  
+  .header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 2rem;
+	gap: 1rem;
+  }
+  
+  .headerContent {
+	flex-grow: 1;
+	text-align: center;
+  }
+  
+  .backButton {
+	background: none;
+	border: none;
+	color: #7159C1;
+	font-size: 1rem;
+	cursor: pointer;
+	padding: 0.5rem;
+	position: absolute;
+	left: 1rem;
+	top: 1rem;
+  }
+  
+  .backButton:hover {
+	text-decoration: underline;
+  }
+  
+  .description {
+	color: #666;
+	margin-top: 0.5rem;
+  }
+  
+  .menu {
+	display: flex;
+	gap: 0.5rem;
+	position: absolute;
+	right: 1rem;
+	top: 1rem;
+  }
+  
+  .menuButton {
+	background: none;
+	border: none;
+	color: #7159C1;
+	cursor: pointer;
+	padding: 0.5rem;
+	font-size: 0.9rem;
+  }
+  
+  .menuButton:hover {
+	text-decoration: underline;
+  }
+  
+  .cardContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2rem;
+	margin-top: 3rem;
+  }
+  
+  .card {
+	width: 100%;
+	max-width: 500px;
+	min-height: 300px;
+	background: white;
+	border-radius: 16px;
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+	padding: 2rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	cursor: pointer;
+	transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .cardBack {
+	background: #f8f8f8;
+  }
+  
+  .cardContent {
+	font-size: 1.5rem;
+	line-height: 1.6;
+	text-align: center;
+	flex-grow: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+  }
+  
+  .cardProgress {
+	text-align: center;
+	color: #666;
+	font-size: 0.9rem;
+	margin-top: 1rem;
+  }
+  
+  .difficultyButtons {
+	display: flex;
+	justify-content: center;
+	gap: 1rem;
+	width: 100%;
+	max-width: 500px;
+  }
+  
+  .difficultyButton {
+	padding: 0.8rem 1.5rem;
+	border: none;
+	border-radius: 8px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: transform 0.2s;
+	flex: 1;
+	max-width: 120px;
+  }
+  
+  .difficultyButton:hover {
+	transform: translateY(-2px);
+  }
+  
+  .easy {
+	background-color: #4CAF50;
+	color: white;
+  }
+  
+  .medium {
+	background-color: #FFC107;
+	color: #333;
+  }
+  
+  .hard {
+	background-color: #F44336;
+	color: white;
+  }
+  
+  .loadingContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+  }
+  
+  .loader {
+	border: 5px solid #f3f3f3;
+	border-top: 5px solid #7159C1;
+	border-radius: 50%;
+	width: 50px;
+	height: 50px;
+	animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+  }
+  
+  .errorContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+	gap: 1rem;
+  }
