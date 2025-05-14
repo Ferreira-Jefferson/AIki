@@ -1,12 +1,13 @@
 
 import { Types } from 'mongoose';
-import { IDeck, Deck } from '../models/Deck';
+import { IDeck, Deck, IGeneratedDeck} from '../models/Deck';
 import { ICard, Card } from '../models/Card';
 import { generateCardsWithAI } from './geminiService';
 
 export const createDeckWithCards = async (deckData: IDeck): Promise<IDeck | void> => {
   
-	const cardsData: ICard[] = await generateCardsWithAI(deckData);
+	const data: IGeneratedDeck = await generateCardsWithAI(deckData);
+	const cardsData: ICard[] = data.cards;
 	
 	try {
 		const deck = await Deck.create(deckData) as IDeck & { _id: Types.ObjectId };
@@ -25,6 +26,7 @@ export const createDeckWithCards = async (deckData: IDeck): Promise<IDeck | void
 		for(let card of cards)
 			deck.cards.push((card as any)._id);
 
+		deck.preferences = data.preferences;
 		await deck.save();
 
 	} catch (error: any) {

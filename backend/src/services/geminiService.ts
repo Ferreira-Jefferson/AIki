@@ -1,8 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import dotenv from 'dotenv';
-import { ICard } from "src/models/Card";
-import { IDeck } from "src/models/Deck";
+import { IDeck, IGeneratedDeck } from "src/models/Deck";
 
 dotenv.config();
 const apiKey = process.env.GOOGLE_GENAI_API_KEY;
@@ -22,77 +21,98 @@ async function anwer(prompt: string) {
   }
 
 
-export const generateCardsWithAI = async (deck: IDeck): Promise<ICard[]> => {
-	const prompt: string = `**Objetivo** Gerar flashcards para um deck (sem criar se não houver correlação).
-
-**Regra obrigatória**
-- SEM explicações, SEM Markdown, SEM campos adicionais.  
-- O retorno SEMPRE deve ser um json válido e somente um json válido. 
-
-**Input**  
-- Deck.title: ${deck.title}
-- Deck.description: ${deck.description}
-
-**Fluxo**  
-1. **Validação**  
-   - Detectar idioma via ISO 639-1 → se falhar, abortar com  
-     { "error": "[LANG_NOT_FOUND] Idioma não reconhecido", "codes": ["LANG_NOT_FOUND"] }  
-   - Contar palavras da descrição → se > 500, abortar com  
-     { "error": "[MAX_LIMIT_EXCEEDED] Descrição muito longa", "codes": ["MAX_LIMIT_EXCEEDED"] }  
-   - Verificar especificidade (Se estiver muito abrangente e difícil de categorizar é inválido) → se inválido, abortar com  
-	{ "error": "[BROAD_CONTEXT] Contexto muito amplo. Seja mais específico.", "codes": ["BROAD_CONTEXT"] }
-   - Verificar contexto válido (Se não for relacionado a aprender algo e que dê para dividir em cards é inválido) → se inválido, abortar com  
-     { "error": "[INVALID_CONTEXT] Contexto não suportado", "codes": ["INVALID_CONTEXT"] }
-
-2. **Geração dos cards**  
-   - Extrair termos-chaves reais (sem inventar nomes, nem usar nomes próprios).  
-   - Para mídia específica: usar apenas palavras do texto/álbum/filme mencionado.  
-   - Incluir pronúncia fonética simples entre parênteses. 
-   		- Português por padrão, ou na lingua solicitada pelo usuário. 
-		- A pronuncia fonética deve ser clara e compreeensível
-		- Não deve ter caracteres incomuns
-		- Não deve inventar caracteres
-		- Exemplo:
-			- the: dhâ
-			- of: âv
-			- to: tuu
-			- and: énd 
-   - Tags (máx. 3): idioma + categoria gramatical ou área temática.
-
-3. **Formato de saída**  
-   - Se OK, retornar **apenas** um array JSON de objetos:
-     [
-       {
-         "front": "palavra (pronúncia)",
-         "back": "tradução",
-         "tags": ["Idioma", "Categoria", ...]
-       }
-     ]
-     
-   - Caso de erro, retornar **apenas**:
-     {
-       "error": "mensagem clara",
-       "codes": ["CÓDIGO_ERRO", …]
-     }
-4. **Exemplo de saída com todo ok**
-[
-	{
-		"front": "other (âdhâr)",
-		"back": "âdhâr",
-		"tags": ["Inglês", "Adjetivo", "Pronome"]
+  function extractJsonFromText(text: string): any {
+	const match = text.match(/```json\n([\s\S]*?)\n```/);
+	if (!match) throw new Error('Bloco JSON não encontrado');
+	
+	try {
+		const validJson = JSON.parse(match[1].replace('```json', "").replace('```', ""));
+		return validJson
+	} catch (error: any) {
+	  throw new Error('JSON inválido: ' + error.message);
 	}
-]
-
-**Regras extra**  
-- Se a dercrição não tiver correlação direta com a criação de de cards, aborte.
-- 50–500 palavras geradas (default: 50, se não especificado).
-- NUNCA inventar ou expandir conteúdo além do formato.  
-- SEM explicações, SEM Markdown, SEM campos adicionais.  
-`;
+  }
+export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> => {
+	const prompt: string = `**Objetivo**  
+	Gerar flashcards para um deck (sem criar se não houver correlação).
+	
+	**Regra obrigatória**  
+	- SEM explicações, SEM Markdown, SEM campos adicionais.  
+	- O retorno SEMPRE deve ser um JSON válido e SOMENTE um JSON válido.
+	
+	**Input**  
+	- Deck.title: ${deck.title}  
+	- Deck.description: ${deck.description}  
+	
+	**Fluxo**
+	
+	1. **Validação**  
+	   - Detectar idioma via ISO 639-1 → se idioma não reconhecido, retornar:  
+		 { "error": "[LANG_NOT_FOUND] Idioma não reconhecido", "codes": ["LANG_NOT_FOUND"] }  
+		 - *Exceção:* Idiomas ficcionais amplamente conhecidos com vocabulário próprio são válidos.  
+	   - Contar palavras da descrição → se > 1000, retornar:  
+		 { "error": "[MAX_LIMIT_EXCEEDED] Descrição muito longa", "codes": ["MAX_LIMIT_EXCEEDED"] }  
+	   - Verificar especificidade → se muito abrangente ou genérico, retornar:  
+		 { "error": "[BROAD_CONTEXT] Contexto muito amplo. Seja mais específico.", "codes": ["BROAD_CONTEXT"] }  
+	   - Validar contexto → se não for relacionado a aprendizado ou impossível de dividir em cards, retornar:  
+		 { "error": "[INVALID_CONTEXT] Contexto não suportado", "codes": ["INVALID_CONTEXT"] }
+	
+	2. **Geração dos cards**  
+	   - Extrair termos-chaves reais (sem nomes próprios ou termos inventados).  
+	   - Para mídia específica (filme, música, livro), usar apenas palavras do conteúdo mencionado.  
+	   - Adicionar pronúncia fonética simples entre parênteses, clara e compreensível.  
+		 - Em português por padrão, ou no idioma do usuário.  
+		 - Sem caracteres incomuns.  
+		 - Exemplo:
+		   - the: dhâ  
+		   - of: âv  
+		   - to: tuu  
+		   - and: énd  
+	   - Tags (máx. 3): idioma + categoria gramatical ou área temática.  
+	   - Gerar 5 frases curtas (até 5 palavras) que incluam a palavra estudada.  
+	   - Incluir no retorno o objeto 'preferences' no seguinte padrão.
+	   	preferences {
+			language: string;
+			difficulty: 'beginner' | 'intermediate' | 'advanced';
+			topics: string[];
+			source: 'user_input' | 'music' | 'movie' | 'book' ;
+		}
+	
+	3. **Formato de saída**  
+	   - Se válido, retornar um array JSON com a seguinte estrutura:
+		 {
+		   "preferences": {
+			 "language": "inglês",
+			 "difficulty": "beginner",
+			 "topics": ['to-be', 'verbs'],
+			 "source": "user_input"
+		   },
+		   "cards": [
+			{
+				"front": "palavra (pronúncia)",
+				"back": "tradução",
+				"tags": ["Idioma", "Categoria", ...],
+				"phrases": ["frase 1", "frase 2", ..., "frase 5"]
+			},
+			...
+			]
+		 }
+	
+	   - Em caso de erro, retornar SOMENTE:
+		 {
+		   "error": "mensagem clara",
+		   "codes": ["CÓDIGO_ERRO", …]
+		 }
+	
+	**Regras extra**  
+	- Se a descrição não tiver correlação direta com a criação de cards, retornar erro.  
+	- Gerar entre 50–500 palavras (padrão: 50 se não especificado).  
+	- NUNCA inventar conteúdo ou expandir o que foi solicitado.  
+	- SEM explicações, SEM Markdown, SEM campos adicionais.
+	`;	
 
 	const response = await anwer(prompt);
-	const cards = JSON.parse(response.replace('```json', "").replace('```', ""))
-
+	const cards = extractJsonFromText(response)
 	if(cards.error){
 		throw new Error(cards.error);
 	}

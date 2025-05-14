@@ -10,6 +10,7 @@ export interface ICard extends Document {
   nextReviewDate: Date;
   difficulty: 'none' | 'easy' | 'medium' | 'hard';
   tags: string[];
+  phrases: string[];
   deck: mongoose.Types.ObjectId;
 }
 
@@ -28,6 +29,7 @@ const CardSchema: Schema = new Schema(
       default: 'none'
     },
     tags: [{ type: String }],
+	phrases: [{ type: String }],
     deck: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Deck',

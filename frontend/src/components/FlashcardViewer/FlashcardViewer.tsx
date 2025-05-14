@@ -107,7 +107,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	  
 	  calculateProgress(updatedDeck);
 	  
-	  	if(currentIndex > 3)
+	  	if(currentIndex > 10)
 		{
 			fetchCards()
 			setLastIndex(0)

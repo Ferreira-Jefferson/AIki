@@ -20,15 +20,15 @@ Facilitar a retenção de informações com **inteligência artificial**, criand
 
 ## 🔍 Funcionalidades  
 
-- **Geração automática de decks** – Baseada em respostas do usuário.  
-- **Palavras mais faladas** – Escolha entre as 100 ou 1000 palavras mais usadas em um idioma.  
+- **Geração automática de decks** – Baseada em na solicitação do usuário.  
+- **Palavras mais faladas** – Aprenda até as 1000 palavras mais usadas em um idioma.  
 - **Foco temático** – Áreas como medicina, tecnologia, negócios, etc.  
 - **Aprendizado com arte** – Criar decks a partir de músicas, filmes e livros.  
 - **Músicas** – Seleção de artista ou gênero para extrair palavras de letras de músicas.  
 - **Filmes e livros** – Identificação de palavras-chave para compor decks.  
-- **Personalização** – Usuário pode adicionar conteúdos manualmente.  
 - **Filtragem de palavras repetidas** – Otimiza decks gerados.  
-- **Aprendizado por palavras ou frases** – Introdução gradual de frases para fixação.  
+- **[Futuramente] Aprendizado por palavras ou frases** – Introdução gradual de frases para fixação.  
+- **[Futuramente] Personalização** – Usuário pode adicionar conteúdos manualmente.  
 
 ---
 
