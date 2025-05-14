@@ -27,6 +27,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
 	const fetchCards = async () => {
@@ -55,22 +56,37 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   const handleFlip = () => setFlipped(!flipped);
 
   const handlePrevious = () => {
-		setFlipped(false);
-		setTimeout(() => {
-			setCurrentIndex(prev => prev - 1);			
-		}, 200);
+		if (isProcessing) return; 
+  
+		setIsProcessing(true);
+		if(currentIndex > 0) {
+			setFlipped(false);
+			setTimeout(() => setCurrentIndex(prev => prev - 1), 200);
+		}
+		setTimeout(() => setIsProcessing(false), 200);	
   };
 
   const handleNext = () => {
+	if (isProcessing) return; 
+  
+	setIsProcessing(true);
+	if(currentIndex < cards.length-1) {
 	  setFlipped(false);
-	  setTimeout(() => {
-			setCurrentIndex(prev => prev + 1);		
-		}, 200);	  
+	  setTimeout(() => setCurrentIndex(prev => prev + 1), 200);	
+	}  
+	setTimeout(() => setIsProcessing(false), 200);	
   };
 
-  const handleAnswer = async (difficulty: 'easy' | 'medium' | 'hard') => {
+  const handleAnswer = async (e: React.MouseEvent<HTMLButtonElement>, difficulty: 'easy' | 'medium' | 'hard') => {
+	if (!currentCard) return;
+
+	if (isProcessing) return;  
+	setIsProcessing(true);
+
+	const button = e.currentTarget;
+     button.disabled = true;
+
 	try {
-	  if (!currentCard) return;
   
 	  const response = await fetch(
 		`http://localhost:3001/api/decks/${deck._id}/cards/${currentCard._id}/process-response`,
@@ -90,21 +106,26 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	  const { card, deck: updatedDeck } = await response.json();
 	  
 	  calculateProgress(updatedDeck);
-	  setLastIndex(prev => prev + 1);
-	  handleNext();
+
+	  setTimeout(() => handleNext(), 200);	
 	  
 	} catch (error) {
-	  console.error('Error processing card response:', error);
+		console.error('Error processing card response:', error);
+		setTimeout(() => setIsProcessing(false), 1000);	
+	}	finally {
+		setTimeout(() => {
+			setIsProcessing(false)
+			button.disabled = false;
+		}, 500);	
 	}
   };
 
  	const calculateProgress = (deck: Deck) => {
-		console.log("Dentro", deck)
 		const total = deck.cardsDifficulty.easy + deck.cardsDifficulty.medium + deck.cardsDifficulty.hard;
 		if (total == 0)
 			setProgress(0);
 		const progress = (deck.cardsDifficulty.easy + deck.cardsDifficulty.medium * 0.5) / deck.cards.length;
-		const result = Math.min(Math.max(progress * 100, 0), 100);
+		const result = Math.round(Math.min(Math.max(progress * 100, 0), 100));
 		setProgress(result)
 	  };
 
@@ -119,7 +140,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 		onClick={handlePrevious}
 		className={`${styles.navButton} ${currentIndex <= 0 ? styles.disabled : ''}`}
 		aria-label="Anterior"
-		disabled={currentIndex <= 0}
+		disabled={currentIndex <= 0 || isProcessing}
 		>
 		&lt;
 		</button>
@@ -138,16 +159,16 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
           onClick={handleNext} 
           className={`${styles.navButton} ${(currentIndex >= lastIndex) ? styles.disabled : ''}`}
           aria-label="Próximo"
-		  disabled={currentIndex >= lastIndex}
+		  disabled={currentIndex >= lastIndex || isProcessing}
         >
           &gt;
         </button>
       </div>
 
       <div className={styles.difficultyButtons}>
-        <button onClick={() => handleAnswer('easy')} className={styles.easy}>Easy</button>
-        <button onClick={() => handleAnswer('medium')} className={styles.medium}>Medium</button>
-        <button onClick={() => handleAnswer('hard')} className={styles.hard}>Hard</button>
+        <button onClick={(e) => handleAnswer(e, 'easy')} className={styles.easy} disabled={isProcessing}>Easy</button>
+        <button onClick={(e) => handleAnswer(e, 'medium')} className={styles.medium}>Medium</button>
+        <button onClick={(e) => handleAnswer(e, 'hard')} className={styles.hard}>Hard</button>
       </div>
     </div>
   );

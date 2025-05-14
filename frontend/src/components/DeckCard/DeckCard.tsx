@@ -26,7 +26,7 @@ export default function DeckCard({ deck }: DeckCardProps) {
     const total = deck.cards.easy + deck.cards.medium + deck.cards.hard;
 	if (total == 0)return total;
     const progress = (deck.cards.easy + deck.cards.medium * 0.5) / deck.cards.total;
-    return Math.min(Math.max(progress * 100, 0), 100);
+    return Math.round(Math.min(Math.max(progress * 100, 0), 100));
   };
 
   const handleClick = () => {
