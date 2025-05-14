@@ -38,6 +38,19 @@ export const processCardResponse = async (cardId: string, difficulty: 'easy' | '
 	else if (difficulty === 'medium') card.mediumCount += 1;
 	else if (difficulty === 'hard') card.hardCount += 1;
   
+	switch (difficulty) {
+	  case 'easy':
+		card.nextReviewDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // +3 dias
+		break;
+	  case 'medium':
+		card.nextReviewDate = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000); // +1 dia
+		break;
+	  case 'hard':
+		const randomMinutes = Math.floor(Math.random() * 21) + 5; // 5-25 min
+		card.nextReviewDate = new Date(Date.now()  + randomMinutes * 60 * 1000);
+		break;
+	}
+
 	await Promise.all([
 	  card.save(),
 	  deck.save()

@@ -29,24 +29,24 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-	const fetchCards = async () => {
-	  try {
-		const response = await fetch(`http://localhost:3001/api/decks/${deck._id}/cards`);
-		
-		if (!response.ok) {
-		  throw new Error('Falha ao carregar as cartas do deck');
-		}
-		
-		const cardsData = await response.json();
-		setCards(cardsData); 
-		calculateProgress(deck);
-		
-	  } catch (error) {
-		console.error('Erro ao buscar cartas:', error);
+  const fetchCards = async () => {
+	try {
+	  const response = await fetch(`http://localhost:3001/api/decks/${deck._id}/cards`);
+	  
+	  if (!response.ok) {
+		throw new Error('Falha ao carregar as cartas do deck');
 	  }
-	};
-  
+	  
+	  const cardsData = await response.json();
+	  setCards(cardsData); 
+	  calculateProgress(deck);
+	  
+	} catch (error) {
+	  console.error('Erro ao buscar cartas:', error);
+	}
+  };
+
+  useEffect(() => {
 	fetchCards();
   }, [deck]);
   
@@ -103,11 +103,19 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 		throw new Error('Failed to process card response');
 	  }
   
-	  const { card, deck: updatedDeck } = await response.json();
+	  const { deck: updatedDeck } = await response.json();
 	  
 	  calculateProgress(updatedDeck);
-
-	  setTimeout(() => handleNext(), 200);	
+	  
+	  	if(currentIndex > 3)
+		{
+			fetchCards()
+			setLastIndex(0)
+			setCurrentIndex(0)
+			handleNext();
+		} else {
+			setTimeout(() => handleNext(), 200);
+		}
 	  
 	} catch (error) {
 		console.error('Error processing card response:', error);
@@ -116,7 +124,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 		setTimeout(() => {
 			setIsProcessing(false)
 			button.disabled = false;
-		}, 500);	
+		}, 500);
 	}
   };
 

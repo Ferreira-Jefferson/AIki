@@ -39,23 +39,19 @@ export const createCard = async (req: Request, res: Response): Promise<void> => 
 };
 
 export const getCards = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { deckId } = req.params;
-
-    const deck = await Deck.findById(deckId).populate('cards');
-    if (!deck) {
-      res.status(404).json({ error: 'Deck não encontrado' });
-	  return;
-    }
-
-    res.status(200).json(deck.cards);
-	return;
-  } catch (error) {
-    console.error('Erro ao listar os cards:', error);
-    res.status(500).json({ error: 'Erro ao listar os cards' });
-	return;
-  }
-};
+	try {
+	  const { deckId } = req.params;
+  
+	  const cards = await Card.find({ deck: deckId })
+		.sort({ nextReviewDate: 1 })
+		.exec();
+  
+	  res.status(200).json(cards);
+	} catch (error) {
+	  console.error('Erro ao listar os cards:', error);
+	  res.status(500).json({ error: 'Erro ao listar os cards' });
+	}
+  };
 
 export const getCard = async (req: Request, res: Response): Promise<void> => {
   try {

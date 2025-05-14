@@ -48,7 +48,7 @@ export default function DeckHeader({
     className={styles.backButton}
     aria-label="Voltar para a lista de decks"
   >
-    Lista de Decks
+	&lt; Lista de Decks
   </button>
 
   <div className={styles.headerContent}>
