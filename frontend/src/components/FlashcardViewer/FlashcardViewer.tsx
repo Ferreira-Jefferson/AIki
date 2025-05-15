@@ -2,10 +2,16 @@
 import { useEffect, useState } from 'react';
 import styles from './FlashcardViewer.module.css';
 
+interface IExamplesCard {
+	front: string;
+	back: string;
+}
+
 interface Card {
 	_id: string
 	front: string;
 	back: string;
+	examples: IExamplesCard[];
 }
 
 interface Deck {
@@ -28,6 +34,10 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   const [flipped, setFlipped] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showExample, setShowExample] = useState(false);
+  const [showExampleBack, setShowExampleBack] = useState(false);
+  const [randomIndexExample, setRandomIndexExample] = useState(0);
+  
 
   const fetchCards = async () => {
 	try {
@@ -46,12 +56,18 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	}
   };
 
+  const currentCard = cards[currentIndex];
+
   useEffect(() => {
 	fetchCards();
   }, [deck]);
+
+  useEffect(() => {
+	setShowExample(false);
+  }, [currentCard]);
+  
   
 
-  const currentCard = cards[currentIndex];
 
   const handleFlip = () => setFlipped(!flipped);
 
@@ -68,6 +84,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 
   const handleNext = () => {
 	if (isProcessing) return; 
+	console.log({currentCard}, {randomIndexExample})
   
 	setIsProcessing(true);
 	if(currentIndex < cards.length-1) {
@@ -76,6 +93,13 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	}  
 	setTimeout(() => setIsProcessing(false), 200);	
   };
+
+  const handleShowExample = () => {
+	const randomIndex = Math.floor(Math.random() * currentCard.examples.length);
+	setRandomIndexExample(randomIndex)
+	setShowExample(true);
+	setShowExampleBack(false); 
+}
 
   const handleAnswer = async (e: React.MouseEvent<HTMLButtonElement>, difficulty: 'easy' | 'medium' | 'hard') => {
 	if (!currentCard) return;
@@ -115,6 +139,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 			handleNext();
 		} else {
 			setTimeout(() => handleNext(), 200);
+			setLastIndex(prev => prev + 1)
 		}
 	  
 	} catch (error) {
@@ -143,35 +168,59 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
         <span>Progresso: {progress}%</span>
       </div>
 
-      <div className={styles.flashcardArea}>
-      <button
-		onClick={handlePrevious}
-		className={`${styles.navButton} ${currentIndex <= 0 ? styles.disabled : ''}`}
-		aria-label="Anterior"
-		disabled={currentIndex <= 0 || isProcessing}
-		>
-		&lt;
-		</button>
+	  <div className={styles.flashcardArea}>
+  <button
+    onClick={handlePrevious}
+    className={`${styles.navButton} ${currentIndex <= 0 ? styles.disabled : ''}`}
+    aria-label="Anterior"
+    disabled={currentIndex <= 0 || isProcessing}
+  >
+    &lt;
+  </button>
 
-        <div 
-          className={`${styles.card} ${flipped ? styles.flipped : ''}`} 
-          onClick={handleFlip}
-        >
-          <div className={styles.cardInner}>
-            <div className={styles.cardFront}>{currentCard?.front || 'Front'}</div>
-            <div className={styles.cardBack}>{currentCard?.back || 'Back'}</div>
-          </div>
-        </div>
-
-        <button 
-          onClick={handleNext} 
-          className={`${styles.navButton} ${(currentIndex >= lastIndex) ? styles.disabled : ''}`}
-          aria-label="Próximo"
-		  disabled={currentIndex >= lastIndex || isProcessing}
-        >
-          &gt;
-        </button>
+  <div className={styles.cardWithExample}>
+    <div 
+      className={`${styles.card} ${flipped ? styles.flipped : ''}`} 
+      onClick={handleFlip}
+    >
+      <div className={styles.cardInner}>
+        <div className={styles.cardFront}>{currentCard?.front || 'Front'}</div>
+        <div className={styles.cardBack}>{currentCard?.back || 'Back'}</div>
       </div>
+    </div>
+
+	{!showExample ? (
+	<p 
+		className={styles.exampleToggle} 
+		onClick={handleShowExample}
+	>
+		Uso numa frase
+	</p>
+	) : (
+	<p 
+		className={styles.exampleText}
+		onClick={() => setShowExampleBack(prev => !prev)}
+		style={{ cursor: 'pointer' }}
+	>
+		{currentCard?.examples?.length
+		? (showExampleBack 			
+			? currentCard.examples[randomIndexExample].back 
+			: currentCard.examples[randomIndexExample].front)
+		: '🤔 Sem exemplo'}
+	</p>
+	)}
+
+  </div>
+
+  <button 
+    onClick={handleNext} 
+    className={`${styles.navButton} ${(currentIndex >= lastIndex) ? styles.disabled : ''}`}
+    aria-label="Próximo"
+    disabled={currentIndex >= lastIndex || isProcessing}
+  >
+    &gt;
+  </button>
+</div>
 
       <div className={styles.difficultyButtons}>
         <button onClick={(e) => handleAnswer(e, 'easy')} className={styles.easy} disabled={isProcessing}>Easy</button>

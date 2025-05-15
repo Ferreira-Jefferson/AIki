@@ -1,5 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IExamplesCard {
+	front: string;
+	back: string;
+}
 export interface ICard extends Document {
   front: string;
   back: string;
@@ -10,7 +14,7 @@ export interface ICard extends Document {
   nextReviewDate: Date;
   difficulty: 'none' | 'easy' | 'medium' | 'hard';
   tags: string[];
-  phrases: string[];
+  examples: IExamplesCard[];
   deck: mongoose.Types.ObjectId;
 }
 
@@ -29,7 +33,18 @@ const CardSchema: Schema = new Schema(
       default: 'none'
     },
     tags: [{ type: String }],
-	phrases: [{ type: String }],
+	examples: [{
+		front: {
+			type: String,
+			required: false,
+			trim: true
+		},
+		back: {
+			type: String,
+			required: false,
+			trim: true
+		}
+		}],
     deck: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Deck',
