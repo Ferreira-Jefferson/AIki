@@ -41,10 +41,13 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> 
 	- Descrição do deck: ${deck.description} 
 
 
-	# Regra obrigatória. 
-	- Respeite o desejo do usuário.  
+	# Regra obrigatória.
+	- Se for passadas as palavras ou frases para criar o deck eles somente devem ser formatados para ficarem no padrão do json.
+	- Respeite o que foi solicitado na descrição.  
 	- SEM explicações, SEM Markdown, SEM campos adicionais.  
 	- O retorno SEMPRE deve ser um JSON válido e SOMENTE um JSON válido.
+	- Um card sem quantidade informada deve ter no mínimo 20 palavras/frases
+	- 100 palavras é uma quantidade pequena e deve ser gerada sem problemas
 
 	# Objetivo.
 	* Com base na descrição do deck gere json de flashcards para um deck.
@@ -106,29 +109,38 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> 
 	   - Para mídia específica (filme, música, livro), usar palavras ou frases (caso solicitado) do conteúdo mencionado.  
 	   - Para palavras, adicionar pronúncia fonética simples entre parênteses, clara e compreensível.  
 		 - Em português por padrão, ou no idioma da descrição.  
-		 - Sem caracteres incomuns, como ('oʊpən)
-		 - Exemplo:
-		   - the: dhâ  
-		   - of: âv  
-		   - to: tuu  
-		   - and: énd  
-		   - open: ô-pen
-	   	- Se o objetivo for gerar **palavras** (ex: "criar palavras em japonês com o verbo X"), então:  
+		 - NUNCA use caracteres incomuns na pronuncia fonótica, como ('oʊpən) ou (sɛd)
+		 - Crie uma pronuncia de acordo com a maneira que se fala naturalmente no idioma da descrição.
+		 - Exemplo de pronuncia fonética válida:
+		   - the (dhâ)  
+		   - of (âv)  
+		   - to (tuu)  
+		   - and (énd)  
+		   - open (ô-pen)
+
+		- Exemplo de pronuncia fonética inválida:
+		   - Forest (fɔr-əst) 
+		   - open ('oʊpən) 
+		   - Mountain (maʊn-tən)  
+		   - Ocean (ō-shən)  
+		   - Qualquer outra escrita com palavras que não são do alfabeto oficial
+		   
+	   	- Se o objetivo for gerar "palavras" (ex: "criar palavras em japonês com o verbo X"), então:  
 		- 'card.front' deve conter a palavras no idioma alvo, com a pronuncia fonética.
-		- 'card.back' deve conter a tradução da palavra.  
+		- 'card.back' deve conter a TRADUÇÃO da palavra. IMPORTANTE: somente a TRADUÇÃO da palavra de estudo.
 		- 'examples' deve conter as "frases" com sua respectiva tradução (obrigatório):  
 			- 'examples[].front': frase contendo a palavra do card.front  
-			- 'examples[].back': tradução da frase   
+			- 'examples[].back': TRADUÇÃO da frase de exemplo. IMPORTANTE: somente a TRADUÇÃO da frase de exemplo.  
 			- Gerar 5 frases curtas (até 5 palavras) que incluam a palavra estudada e suas respectivas traduções.  
 	   - Tags (máx. 3): idioma + categoria gramatical ou área temática.  
 
 	# Regra especial para a criação de frases
 	- Se o objetivo for gerar **frases** (ex: "criar frases em japonês com o verbo X"), então:  
-	  - 'card.front' deve conter a frases completas no idioma alvo, sem a pronuncia fonética.
-	  - 'card.back' deve conter a tradução da frase completa.  
+	  - 'card.front' deve conter a frases completas no idioma alvo, sem a pronuncia fonética. 
+	  - 'card.back' deve conter a TRADUÇÃO da frase completa. IMPORTANTE: somente a TRADUÇÃO da frase de estudo.
 	  - 'examples' deve conter as "palavras-chave da frase" com sua respectiva tradução (obrigatório)::  
 		- 'examples[].front': palavras chave da frase  
-		- 'examples[].back': tradução das palavras chave da frase   
+		- 'examples[].back': TRADUÇÃO das palavras chave da frase. IMPORTANTE: somente a TRADUÇÃO da das palavras chave de estudo.  
 		- Gerar até 5 combinações (no mínimo 2 palavras da frase) com as palavras da frase do card.front e suas respectivas traduções.  
 	  - NÃO deve conter pronúncia fonética. 
 	  - Tags continuam obrigatórias.
@@ -144,7 +156,7 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> 
 		   },
 		   "cards": [
 			 {
-			   "front": "They (daiei)",
+			   "front": "They (dei)",
 			   "back": "Eles",
 			   "tags": ["inglês", "to-be", "pronome"],
 			   "examples": [
