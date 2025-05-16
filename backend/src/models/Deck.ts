@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { ICard } from './Card'; // Importe o tipo do Card, assumindo que o schema de Card está no arquivo 'Card.ts'
+import { ICard } from './Card'; 
 
 export interface IGeneratedDeck {
 	preferences: IDeckPreferences;
