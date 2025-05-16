@@ -33,6 +33,11 @@ export default function DeckCard({ deck }: DeckCardProps) {
     router.push(`/decks/${deck.id}`);
   };
 
+  const handleDescription = () => {
+	const desc = deck.description.split('\n')
+	return desc.length > 1 ? desc[0] + ' [...]' : desc[0];
+  }
+
   const progress = calculateProgress();
 
   return (
@@ -52,7 +57,7 @@ export default function DeckCard({ deck }: DeckCardProps) {
         </div>
       </div>
 
-      <p className={styles.description}>{deck.description}</p>
+      <p className={styles.description}>{handleDescription()}</p>
 
       <div className={styles.stats}>
         <div className={styles.statItem}>
