@@ -66,9 +66,6 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	setShowExample(false);
   }, [currentCard]);
   
-  
-
-
   const handleFlip = () => setFlipped(!flipped);
 
   const handlePrevious = () => {
@@ -84,7 +81,6 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 
   const handleNext = () => {
 	if (isProcessing) return; 
-	console.log({currentCard}, {randomIndexExample})
   
 	setIsProcessing(true);
 	if(currentIndex < cards.length-1) {
@@ -131,12 +127,14 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	  
 	  calculateProgress(updatedDeck);
 	  
-	  	if(currentIndex > 10)
+	  	if(currentIndex >= 10)
 		{
 			fetchCards()
-			setLastIndex(0)
-			setCurrentIndex(0)
-			handleNext();
+			setFlipped(false);
+			setTimeout(() => {
+				setLastIndex(0)
+				setCurrentIndex(0)
+			}, 200);
 		} else {
 			setTimeout(() => handleNext(), 200);
 			setLastIndex(prev => prev + 1)
