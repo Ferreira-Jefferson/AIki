@@ -5,7 +5,6 @@ import { ICard, Card } from '../models/Card';
 import { generateCardsWithAI } from './geminiService';
 
 export const createDeckWithCards = async (deckData: IDeck): Promise<IDeck | void> => {
-  
 	const data: IGeneratedDeck = await generateCardsWithAI(deckData);
 	const cardsData: ICard[] = data.cards;
 	

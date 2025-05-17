@@ -12,13 +12,35 @@ if (!apiKey) {
 
 const genAI = new GoogleGenerativeAI(apiKey);
 
-async function anwer(prompt: string) {
+async function answer(prompt: string) {
 	const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   
 	const result = await model.generateContent(prompt);
 	const response = await result.response;
 	return response.text();
   }
+
+async function answerWithStreaming(prompt: string): Promise<string> {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    let fullText: string | undefined = "";
+	let gemini_error: string = "";
+    try {
+        const result = await model.generateContentStream(prompt);
+        let i = 0;
+        for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
+                fullText += text;
+            }
+            i++;
+        }
+        return fullText;
+    } catch (error) {
+        console.error("Ocorreu um erro durante o streaming:", error);
+		gemini_error = "GEMINI_ERROR";
+        return gemini_error;
+    }
+}
 
   function extractJsonFromText(text: string): any {
 	const match = text.match(/```json\n([\s\S]*?)\n```/);
@@ -32,7 +54,8 @@ async function anwer(prompt: string) {
 	}
   }
 
-export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> => {
+async function promptAndSolicitation(deck: IDeck)
+{
 	const prompt: string = `
 	Crie um deck de flashcard com base na descrição, para isso siga a estritamente as regras abaixo.
 
@@ -131,7 +154,7 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> 
 		- 'examples' deve conter as "frases" com sua respectiva tradução (obrigatório):  
 			- 'examples[].front': frase contendo a palavra do card.front  
 			- 'examples[].back': TRADUÇÃO da frase de exemplo. IMPORTANTE: somente a TRADUÇÃO da frase de exemplo.  
-			- Gerar 5 frases curtas (até 5 palavras) que incluam a palavra estudada e suas respectivas traduções.  
+			- Gerar 3 frases curtas (até 5 palavras) que incluam a palavra estudada e suas respectivas traduções.  
 	   - Tags (máx. 3): idioma + categoria gramatical ou área temática.  
 
 	# Regra especial para a criação de frases
@@ -141,7 +164,7 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> 
 	  - 'examples' deve conter as "palavras-chave da frase" com sua respectiva tradução (obrigatório)::  
 		- 'examples[].front': palavras chave da frase  
 		- 'examples[].back': TRADUÇÃO das palavras chave da frase. IMPORTANTE: somente a TRADUÇÃO da das palavras chave de estudo.  
-		- Gerar até 5 combinações (no mínimo 2 palavras da frase) com as palavras da frase do card.front e suas respectivas traduções.  
+		- Gerar até 3 combinações (no mínimo 2 palavras da frase) com as palavras da frase do card.front e suas respectivas traduções.  
 	  - NÃO deve conter pronúncia fonética. 
 	  - Tags continuam obrigatórias.
 
@@ -212,15 +235,70 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> 
 		- Retorne um JSON válido e SOMENTE um JSON válido.
 		- Se for um deck de frases, todos os cards devem ter frases completas.
 		- Cada card DEVE ter exemplos de estudo de acordo com as regras acima.
+		- Se for solicitado palavras, FAÇA UM DECK SÓ COM PALAVRAS
+		- Se for solicitado frases, FAÇA UM DECK SÓ COM FRASES
 		- Siga estritamente todas as regras acima, sem exceções.
 `
+	
+	const response = await answerWithStreaming(prompt);
 
-	const response = await anwer(prompt);
-	const cards = extractJsonFromText(response)
-	console.log(response)
+	if(!response.split('\n').join('').trim().endsWith('```'))
+	{
+		const promptSanitazed = `
+			Se o json estiver quebrado e não estiver válido, me ajude a corrigir para que fique.
+			- Não altere nenhuma informação do json
+			- Se o json estiver sem o fechamento, ELIMINE o último item do card, feche o array do card e feche o json corretamente
+
+			# Formato de um json válido.
+			{
+				"preferences": {
+				"language": string;
+				"difficulty": 'beginner' | 'intermediate' | 'advanced';
+				"topics": string[];
+				"source": 'user_input' | 'music' | 'movie' | 'book';
+				},
+				"cards": [
+					{
+					"front": string,
+					"back": string
+					"tags": string[],
+					"examples": [
+						{
+						front: string,
+						back: string
+						},
+						{
+						front: string,
+						back: string
+						}
+					]
+			}
+
+			##############
+			${response}
+			##############
+			
+			Garanta a todo custo que o json retornado seja válido e com o máximo de conteúdo possível, nem que seja necessário remover o último e penúltimo elemento do array
+			Retorne apenas um json válido.
+		`;
+
+		const validResponse =  await answer(promptSanitazed);
+		console.log(validResponse)
+		return extractJsonFromText(validResponse)
+	} 
+
+	return extractJsonFromText(response)
+}
+
+export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> => {
+	
+	const cards = await promptAndSolicitation(deck);
+
 	if(cards.error){
+		console.error("Um erro ocorreu em GeminiService.")
 		throw new Error(cards.error);
 	}
+
 	return cards;
 };
 

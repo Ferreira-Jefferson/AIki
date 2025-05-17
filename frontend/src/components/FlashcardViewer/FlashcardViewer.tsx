@@ -125,9 +125,8 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   
 	  const { deck: updatedDeck } = await response.json();
 	  
-	  calculateProgress(updatedDeck);
 	  
-	  	if(currentIndex >= 10)
+	  if(currentIndex >= 10)
 		{
 			fetchCards()
 			setFlipped(false);
@@ -139,6 +138,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 			setTimeout(() => handleNext(), 200);
 			setLastIndex(prev => prev + 1)
 		}
+		calculateProgress(updatedDeck);
 	  
 	} catch (error) {
 		console.error('Error processing card response:', error);
