@@ -307,7 +307,15 @@ const prompt = `
     ####
     1. Analise a solicitação do usuário e determine a quantidade de chamadas necessárias.
        - Cada chamada pode conter no máximo 10 solicitações.
-       - Se a solicitação não permitir definir um número claro, considere um total de 50 como padrão.
+	   - Se for solicitado para gerar palavras e for passado um texto de referência, conte cada palavras do texto.
+	   - Se for solicitado para gerar frases e for passado um texto de referência, conte cada frase do texto.
+       - Se a solicitação não permitir definir um número claro, considere um total de 50 como padrão. 
+	   Exemplos:
+	   	- gere uma lista com dez palavras -> 10
+	   	- gere uma lista com 10 frases -> 10
+	   	- gere uma lista de palavras -> 50
+	   	- gere uma lista de palavras da letra a seguir: Uma letra de uma musica qualquer -> 6
+	   	- gere uma lista de frases: Uma frase. Outra bem bonita. Por fim essa. -> 3
 
     2. Formate a solicitação do usuário substituindo números de quantidade pelo marcador "[%]".
        - Se a quantidade não for explícita, insira "[%]" no local onde deveria estar.
