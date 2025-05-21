@@ -12,7 +12,7 @@ if (!apiKey) {
 
 const genAI = new GoogleGenerativeAI(apiKey);
 
-async function answer(prompt: string) {
+export async function answer(prompt: string) {
 	const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   
 	const result = await model.generateContent(prompt);
@@ -42,7 +42,7 @@ async function answerWithStreaming(prompt: string): Promise<string> {
     }
 }
 
-  function extractJsonFromText(text: string): any {
+  export function extractJsonFromText(text: string): any {
 	const match = text.match(/```json\n([\s\S]*?)\n```/);
 	if (!match) throw new Error('Bloco JSON não encontrado');
 	
@@ -54,7 +54,77 @@ async function answerWithStreaming(prompt: string): Promise<string> {
 	}
   }
 
-async function promptAndSolicitation(deck: IDeck)
+async function validadeResponse(response: string)
+{
+	if(!response.split('\n').join('').trim().endsWith('```'))
+	{
+		const promptSanitazed = `
+			Se o json estiver quebrado e não estiver válido, me ajude a corrigir para que fique.
+			- Não altere nenhuma informação do json
+			- Se o json estiver sem o fechamento, ELIMINE o último item do card, feche o array do card e feche o json corretamente
+			- Se tiver agum texto explicativo pode remover tudo, deixe apenas o conteúdo de json inalterado.
+			- JAMAIS invente algo que não esta no json passado.
+
+			# Formato de um json válido.
+			{
+				"cards": [
+					{
+					"front": string,
+					"back": string
+					"tags": string[],
+					"examples": [
+						{
+						front: string,
+						back: string
+						},
+						{
+						front: string,
+						back: string
+						}
+					]
+			}
+
+			##############
+			${response}
+			##############
+			
+			Garanta a todo custo que o json retornado seja válido e com o máximo de conteúdo possível, nem que seja necessário remover o último e penúltimo elemento do array
+			Retorne apenas um json válido.
+		`;
+
+		response =  await answer(promptSanitazed);
+	} 
+	return response;
+}
+
+async function createPreferences(description:string) {
+	const prompt: string = `
+    Com base na seguinte descrição, determine as preferências do deck:
+
+    # Descrição do deck:
+    "${description}"
+
+    # Regras:
+    - Identifique o idioma baseado na descrição. Se não for possível, use o idioma da própria descrição.
+    - Determine a dificuldade baseada no tema.
+    - Identifique os tópicos principais com base na descrição.
+    - Se houver menção a uma mídia (música, livro, filme), defina a fonte como a mídia mencionada, caso contrário, defina como "user_input".
+    - Retorne um JSON válido, no seguinte formato:
+
+    {
+        "preferences": {
+            "language": string,
+            "difficulty": "beginner" | "intermediate" | "advanced",
+            "topics": string[],
+            "source": "user_input" | "music" | "movie" | "book"
+        }
+    }
+`;
+	const response = await answer(prompt);
+	return extractJsonFromText(response)
+}
+
+async function createCards(deck: IDeck)
 {
 	const prompt: string = `
 	Crie um deck de flashcard com base na descrição, para isso siga a estritamente as regras abaixo.
@@ -69,8 +139,6 @@ async function promptAndSolicitation(deck: IDeck)
 	- Respeite o que foi solicitado na descrição.  
 	- SEM explicações, SEM Markdown, SEM campos adicionais.  
 	- O retorno SEMPRE deve ser um JSON válido e SOMENTE um JSON válido.
-	- Um card sem quantidade informada deve ter no mínimo 20 palavras/frases
-	- 100 palavras é uma quantidade pequena e deve ser gerada sem problemas
 
 	# Objetivo.
 	* Com base na descrição do deck gere json de flashcards para um deck.
@@ -107,24 +175,18 @@ async function promptAndSolicitation(deck: IDeck)
 	
 	# Formato de saída.
 	{
-		 "preferences": {
-		   "language": string;
-		   "difficulty": 'beginner' | 'intermediate' | 'advanced';
-		   "topics": string[];
-		   "source": 'user_input' | 'music' | 'movie' | 'book';
-		 },
 		"cards": [
-			 {
-			   "front": string,
-			   "back": string
-			   "tags": string[],
-			   "examples": [
-				 {
-				   front: string,
-				   back: string
-				 },
-				...
-			   ]
+			{
+			"front": string,
+			"back": string
+			"tags": string[],
+			"examples": [
+				{
+				front: string,
+				back: string
+				},
+			...
+		]
 	}
 	
 	# Regras gerais para a criação dos cards.
@@ -171,12 +233,6 @@ async function promptAndSolicitation(deck: IDeck)
 	# Exemplos de saída.
 		1. Exemplos de saída para palavras.
 		 {
-		   "preferences": {
-			 "language": "inglês",
-			 "difficulty": "beginner",
-			 "topics": ["to-be", "verbos", "pronomes"],
-			 "source": "user_input"
-		   },
 		   "cards": [
 			 {
 			   "front": "They (dei)",
@@ -199,12 +255,6 @@ async function promptAndSolicitation(deck: IDeck)
 
 		2. Exemplos de saída para frases.
 		 {
-		   "preferences": {
-			 "language": "inglês",
-			 "difficulty": "beginner",
-			 "topics": ["to-be", "verbs"],
-			 "source": "user_input"
-		   },
 		   "cards": [
 			 {
 			   "front": "The book is on the table",
@@ -235,70 +285,78 @@ async function promptAndSolicitation(deck: IDeck)
 		- Retorne um JSON válido e SOMENTE um JSON válido.
 		- Se for um deck de frases, todos os cards devem ter frases completas.
 		- Cada card DEVE ter exemplos de estudo de acordo com as regras acima.
-		- Se for solicitado palavras, FAÇA UM DECK SÓ COM PALAVRAS
-		- Se for solicitado frases, FAÇA UM DECK SÓ COM FRASES
+		- Se for solicitado palavras: FAÇA UM DECK SÓ COM PALAVRAS
+		- Se for solicitado frases: FAÇA UM DECK SÓ COM FRASES
 		- Siga estritamente todas as regras acima, sem exceções.
 `
+		const response = await answerWithStreaming(prompt);
+		const validatedResponse = await validadeResponse(response)
+		return extractJsonFromText(validatedResponse)
+}
+
+export type MCPResponse = {
+    calls: number[];
+    formatted_request: string;
+};
+
+export const mcpDefineQuantityOfCall = async (description: string): Promise<MCPResponse>=>
+{
+const prompt = `
+    Solicitação: ${description}
+
+    ####
+    1. Analise a solicitação do usuário e determine a quantidade de chamadas necessárias.
+       - Cada chamada pode conter no máximo 10 solicitações.
+       - Se a solicitação não permitir definir um número claro, considere um total de 50 como padrão.
+
+    2. Formate a solicitação do usuário substituindo números de quantidade pelo marcador "[%]".
+       - Se a quantidade não for explícita, insira "[%]" no local onde deveria estar.
+       - Se a solicitação não incluir uma quantidade definida, reformule para indicar a necessidade da geração. SEM mudar a solicitação. 
+       
+    Retorne um JSON válido no seguinte formato:
+    {
+        "calls": number[],
+        "formatted_request": "string"
+    }
+
+    Exemplos:
+    - "Gere 33 palavras que comecem com A" → { "calls": [10, 10, 10, 3], "formatted_request": "Gere [%] palavras que comecem com A" }
+    - "Gere 21 frases sobre amor" → { "calls": [10, 10, 1], "formatted_request": "Gere [%] frases sobre amor" }
+    - "Gere algo sobre superação" → { "calls": [10, 10, 10, 10, 10], "formatted_request": "Gere [%] palavras sobre superação" }
+    - "Música do Akon" → { "calls": [10, 10, 10, 10, 10], "formatted_request": "Gere [%] palavras da música do Akon" }
 	
-	const response = await answerWithStreaming(prompt);
+	Importante:
+	- O número pode estar apenas escrito, mas deve ser tranformado em numeral. Ex: Nove -> 9
+	- Tenha certeza de que o número é exatamente o número solicitado.	
+	`;
 
-	if(!response.split('\n').join('').trim().endsWith('```'))
+	try {
+		const response = await answer(prompt);
+		return extractJsonFromText(response) as MCPResponse;
+	} catch(err: any)
 	{
-		const promptSanitazed = `
-			Se o json estiver quebrado e não estiver válido, me ajude a corrigir para que fique.
-			- Não altere nenhuma informação do json
-			- Se o json estiver sem o fechamento, ELIMINE o último item do card, feche o array do card e feche o json corretamente
-
-			# Formato de um json válido.
-			{
-				"preferences": {
-				"language": string;
-				"difficulty": 'beginner' | 'intermediate' | 'advanced';
-				"topics": string[];
-				"source": 'user_input' | 'music' | 'movie' | 'book';
-				},
-				"cards": [
-					{
-					"front": string,
-					"back": string
-					"tags": string[],
-					"examples": [
-						{
-						front: string,
-						back: string
-						},
-						{
-						front: string,
-						back: string
-						}
-					]
-			}
-
-			##############
-			${response}
-			##############
-			
-			Garanta a todo custo que o json retornado seja válido e com o máximo de conteúdo possível, nem que seja necessário remover o último e penúltimo elemento do array
-			Retorne apenas um json válido.
-		`;
-
-		const validResponse =  await answer(promptSanitazed);
-		console.log(validResponse)
-		return extractJsonFromText(validResponse)
-	} 
-
-	return extractJsonFromText(response)
+		throw new Error(`Erro em mcpDefineQuantityOfCall: ${err}`);
+	}
+	
 }
 
 export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> => {
-	
-	const cards = await promptAndSolicitation(deck);
+	const mcp = await mcpDefineQuantityOfCall(deck.description);
+	const response = await createPreferences(deck.description);
+	let deckResponse: IGeneratedDeck = { preferences: response.preferences, cards: [] };
 
-	if(cards.error){
-		console.error("Um erro ocorreu em GeminiService.")
-		throw new Error(cards.error);
+	for(let call of mcp.calls) {
+		deck.description = mcp.formatted_request.replace('[%]', `[${call}]`)
+		const cards = await createCards(deck);
+		if(cards.error){
+			console.error("Um erro ocorreu em GeminiService.")
+			throw new Error(cards.error);
+		} 
+		
+		deckResponse.cards = [...deckResponse.cards, ...cards.cards];
+		const existentItens = deckResponse.cards.map(card => card.front).join(', ')
+		deck.description += `\n\n####\nNÃO crie com as seguintes itens pois já existe no card: \n${existentItens}`
 	}
-
-	return cards;
+	return deckResponse;
 };
 
