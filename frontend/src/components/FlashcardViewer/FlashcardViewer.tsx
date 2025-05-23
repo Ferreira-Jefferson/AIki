@@ -83,10 +83,13 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	if (isProcessing) return; 
   
 	setIsProcessing(true);
-	if(currentIndex < cards.length-1) {
-	  setFlipped(false);
-	  setTimeout(() => setCurrentIndex(prev => prev + 1), 200);	
-	}  
+	setFlipped(false);
+
+	if (currentIndex == cards.length-1) {
+		setCurrentIndex(0);
+	}
+	
+	setTimeout(() => setCurrentIndex(prev => prev + 1), 200);	
 	setTimeout(() => setIsProcessing(false), 200);	
   };
 
