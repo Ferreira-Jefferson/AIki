@@ -37,6 +37,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   const [showExample, setShowExample] = useState(false);
   const [showExampleBack, setShowExampleBack] = useState(false);
   const [randomIndexExample, setRandomIndexExample] = useState(0);
+  const [count, setCount] = useState(0);
   
 
   const fetchCards = async () => {
@@ -87,8 +88,9 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 
 	if (currentIndex == cards.length-1) {
 		setCurrentIndex(0);
+		setCurrentIndex(prev => prev - 1);
 	}
-	
+
 	setTimeout(() => setCurrentIndex(prev => prev + 1), 200);	
 	setTimeout(() => setIsProcessing(false), 200);	
   };
@@ -129,7 +131,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	  const { deck: updatedDeck } = await response.json();
 	  
 	  
-	  if(currentIndex >= 10)
+	  if(currentIndex > 9)
 		{
 			fetchCards()
 			setFlipped(false);
@@ -141,6 +143,9 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 			setTimeout(() => handleNext(), 200);
 			setLastIndex(prev => prev + 1)
 		}
+		if(count == cards.length-1)
+			setCount(0);
+		setCount(prev => prev + 1)
 		calculateProgress(updatedDeck);
 	  
 	} catch (error) {
@@ -165,9 +170,12 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <span>Progresso: {progress}%</span>
-      </div>
+		<div className={styles.header}>
+        	<span>Progresso: {progress}%</span>
+    	</div>
+		<div className={styles.header_count}>
+        	<span>{count}/{cards.length}</span>
+     	</div>
 
 	  <div className={styles.flashcardArea}>
   <button

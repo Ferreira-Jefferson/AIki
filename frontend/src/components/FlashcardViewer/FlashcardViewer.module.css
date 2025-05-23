@@ -12,6 +12,12 @@
 	color: rgba(7, 128, 107, 0.80);
 	font-weight: 500;
   }
+
+  .header_count {
+	margin-top: -1em;
+	color: rgba(92, 9, 81, 0.8);
+	font-weight: 500;
+  }
   
   .flashcardArea {
 	display: flex;
