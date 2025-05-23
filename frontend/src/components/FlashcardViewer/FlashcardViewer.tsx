@@ -88,6 +88,8 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 
 	if (currentIndex == cards.length-1) {
 		setCurrentIndex(0);
+		setCount(0);
+		setLastIndex(0);
 		setCurrentIndex(prev => prev - 1);
 	}
 
