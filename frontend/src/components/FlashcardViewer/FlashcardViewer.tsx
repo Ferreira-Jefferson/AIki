@@ -38,6 +38,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   const [showExampleBack, setShowExampleBack] = useState(false);
   const [randomIndexExample, setRandomIndexExample] = useState(0);
   const [count, setCount] = useState(0);
+  const [countRegress, setCountRegress] = useState(0);
   
 
   const fetchCards = async () => {
@@ -108,6 +109,10 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	if (!currentCard) return;
 
 	if (isProcessing) return;  
+
+	if(difficulty == 'medium' || difficulty == 'hard')
+		setCountRegress(prev => prev + 1);
+
 	setIsProcessing(true);
 
 	const button = e.currentTarget;
@@ -132,7 +137,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   
 	  const { deck: updatedDeck } = await response.json();
 	  
-	  
+
 	  if(currentIndex > 9)
 		{
 			fetchCards()
@@ -140,14 +145,16 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 			setTimeout(() => {
 				setLastIndex(0)
 				setCurrentIndex(0)
+				setCount(count - countRegress > 0 ? count - countRegress : 0)
+				setCountRegress(0);
 			}, 200);
 		} else {
 			setTimeout(() => handleNext(), 200);
 			setLastIndex(prev => prev + 1)
+			setCount(prev => prev + 1)
 		}
 		if(count == cards.length-1)
 			setCount(0);
-		setCount(prev => prev + 1)
 		calculateProgress(updatedDeck);
 	  
 	} catch (error) {
