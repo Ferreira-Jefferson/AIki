@@ -7,7 +7,7 @@ const ChangeButton = (props: any) => {
 
 	const handleClick = () => {
 		setStatus(status == "disabled" ? "enabled" : "disabled");
-		return props.onClick
+		props.onClick()
 	}
   return (
     <button className={styles.changeButton}>
