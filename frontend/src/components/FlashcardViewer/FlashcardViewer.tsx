@@ -40,6 +40,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   const [randomIndexExample, setRandomIndexExample] = useState(0);
   const [count, setCount] = useState(0);
   const [countRegress, setCountRegress] = useState(0);
+  const [activeChange, setActiveChange] = useState(false)
   
 
   const fetchCards = async () => {
@@ -142,6 +143,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	  if(currentIndex > 9)
 		{
 			fetchCards()
+			setActiveChange(false)
 			setFlipped(false);
 			setTimeout(() => {
 				setLastIndex(0)
@@ -170,15 +172,16 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
   };
 
   const handleChange = () => {
-	cards.forEach(card => {
-		[card.front, card.back] = [card.back, card.front]
-		card.examples.forEach(ex => 
+	  cards.forEach(card => {
+		  [card.front, card.back] = [card.back, card.front]
+		  card.examples.forEach(ex => 
 			[ex.front, ex.back] = [ex.back, ex.front])
-
-	})
-	if(currentIndex > 0)
-		handleNext()
-	handlePrevious()
+			
+		})
+		if(currentIndex > 0)
+			handleNext()
+		handlePrevious()
+		setActiveChange(prev => !prev)
   }
 
  	const calculateProgress = (deck: Deck) => {
@@ -192,7 +195,7 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 
   return (
     <div className={styles.container}>
-		<ChangeButton  onClick={handleChange}/>
+		<ChangeButton  handleChange={handleChange} activeChange={activeChange}/>
 		<div className={styles.header}>
         	<span>Progresso: {progress}%</span>
     	</div>
