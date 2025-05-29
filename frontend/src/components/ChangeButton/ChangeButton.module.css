@@ -1,0 +1,12 @@
+.changeButton {
+  position: fixed;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  left: 60%;
+}
+
+.enabled {
+	background-color: rgba(108, 233, 108, 0.623);
+	border-radius: 10px;
+}

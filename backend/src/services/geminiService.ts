@@ -301,7 +301,7 @@ export type MCPResponse = {
 
 export const mcpDefineQuantityOfCall = async (description: string): Promise<MCPResponse>=>
 {
-const prompt = `
+	const prompt = `
     Solicitação: ${description}
 
     ####
@@ -319,7 +319,8 @@ const prompt = `
 
     2. Formate a solicitação do usuário substituindo números de quantidade pelo marcador "[%]".
        - Se a quantidade não for explícita, insira "[%]" no local onde deveria estar.
-       - Se a solicitação não incluir uma quantidade definida, reformule para indicar a necessidade da geração. SEM mudar a solicitação. 
+       - Se a solicitação não incluir uma quantidade definida, reformule para indicar a necessidade da geração.
+	   - Se a solicitação contiver um texto e for ncessário quebrar em palavras ou frases, já deixe a solicitação com as palavras ou frases bem definidas. 
        
     Retorne um JSON válido no seguinte formato:
     {
@@ -363,7 +364,7 @@ export const generateCardsWithAI = async (deck: IDeck): Promise<IGeneratedDeck> 
 		
 		deckResponse.cards = [...deckResponse.cards, ...cards.cards];
 		const existentItens = deckResponse.cards.map(card => card.front).join(', ')
-		deck.description += `\n\n####\nNÃO crie com as seguintes itens pois já existe no card: \n${existentItens}`
+		mcp.formatted_request += `\n\n#Regra mais importante: \nNÃO crie com as palavras/frases abaixo: \n[${existentItens}]`
 	}
 	return deckResponse;
 };

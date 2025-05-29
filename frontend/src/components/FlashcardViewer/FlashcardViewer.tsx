@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import styles from './FlashcardViewer.module.css';
+import ChangeButton from '../ChangeButton/ChangeButton';
 
 interface IExamplesCard {
 	front: string;
@@ -168,6 +169,18 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 	}
   };
 
+  const handleChange = () => {
+	cards.forEach(card => {
+		[card.front, card.back] = [card.back, card.front]
+		card.examples.forEach(ex => 
+			[ex.front, ex.back] = [ex.back, ex.front])
+
+	})
+	if(currentIndex > 0)
+		handleNext()
+	handlePrevious()
+  }
+
  	const calculateProgress = (deck: Deck) => {
 		const total = deck.cardsDifficulty.easy + deck.cardsDifficulty.medium + deck.cardsDifficulty.hard;
 		if (total == 0)
@@ -179,13 +192,13 @@ export default function FlashcardViewer({ deck }: { deck: Deck }) {
 
   return (
     <div className={styles.container}>
+		<ChangeButton  onClick={handleChange}/>
 		<div className={styles.header}>
         	<span>Progresso: {progress}%</span>
     	</div>
 		<div className={styles.header_count}>
         	<span>{count}/{cards.length}</span>
      	</div>
-
 	  <div className={styles.flashcardArea}>
   <button
     onClick={handlePrevious}
